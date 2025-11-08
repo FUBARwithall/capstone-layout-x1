@@ -31,7 +31,7 @@ class _RegisterPageState extends State<RegisterPage> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      // Simulate API call
+      // Simulasi API call
       await Future.delayed(const Duration(seconds: 2));
 
       setState(() => _isLoading = false);
@@ -43,6 +43,9 @@ class _RegisterPageState extends State<RegisterPage> {
             backgroundColor: Colors.green,
           ),
         );
+
+        // ⬇️ Pindahkan navigasi ke sini
+        Navigator.pushNamed(context, '/landing');
       }
     }
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:layout_x1/pages/login_page.dart';
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
@@ -48,6 +49,53 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
+  void _showAiDetectionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: const Center(
+          child: Text('Pilih Area Deteksi', textAlign: TextAlign.center),
+        ),
+        content: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                _showComingSoonDialog('Deteksi Wajah');
+              },
+              icon: const Icon(Icons.face, color: Colors.white),
+              label: const Text('Wajah', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0066CC),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                _showComingSoonDialog('Deteksi Tubuh');
+              },
+              icon: const Icon(Icons.accessibility_new, color: Colors.white),
+              label: const Text('Tubuh', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0066CC),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,62 +117,86 @@ class _LandingPageState extends State<LandingPage> {
             ),
           ],
         ),
-        automaticallyImplyLeading: false, 
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined, color: Colors.black),
             onPressed: () => _showComingSoonDialog('Notifikasi'),
           ),
-          IconButton(
-            icon: const Icon(Icons.person_outline, color: Colors.black),
-            onPressed: () {
-              Navigator.pushNamed(context, '/profile');
-            },
+          Builder(
+            builder: (context) => IconButton(
+              icon: const Icon(Icons.menu, color: Colors.black),
+              onPressed: () {
+                Scaffold.of(context).openEndDrawer();
+              },
+            ),
           ),
           const SizedBox(width: 8),
         ],
       ),
+
+      endDrawer: Drawer(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadiusGeometry.circular(0),
+        ),
+        child: ListView(
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.blue, Colors.yellow],
+                  begin: Alignment.bottomLeft,
+                  end: Alignment.topRight,
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.account_circle, size: 64),
+                  Text(
+                    "Welcome!",
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  Text("panjirafi96@gmail.com"),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text("Profile"),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: Text("Setting"),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: Icon(Icons.access_alarm_rounded),
+              title: Text("History"),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: Icon(Icons.favorite_border),
+              title: Text("Favorites"),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: Icon(Icons.logout),
+              title: Text("Logout"),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => LoginPage()),
+              ),
+            ),
+          ],
+        ),
+      ),
+
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Hero Section
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    const Color(0xFF0066CC),
-                    const Color(0xFF0066CC).withOpacity(0.8),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Selamat Datang! 👋',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Analisis kulit wajahmu dengan AI dan dapatkan rekomendasi treatment terbaik',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white.withOpacity(0.9),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
             // Main Action Cards
             Padding(
               padding: const EdgeInsets.all(16),
@@ -141,7 +213,7 @@ class _LandingPageState extends State<LandingPage> {
                       ),
                     ),
                     child: InkWell(
-                      onTap: () => _showComingSoonDialog('Deteksi Kulit'),
+                      onTap: () => _showAiDetectionDialog(),
                       borderRadius: BorderRadius.circular(12),
                       child: Padding(
                         padding: const EdgeInsets.all(20),
@@ -367,10 +439,10 @@ class _LandingPageState extends State<LandingPage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showComingSoonDialog('Deteksi Cepat'),
         backgroundColor: const Color(0xFF0066CC),
-        icon: const Icon(Icons.add_a_photo),
+        icon: const Icon(Icons.add_a_photo, color: Colors.white),
         label: const Text(
           'Deteksi Cepat',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
