@@ -52,7 +52,7 @@ class _RegisterPageState extends State<RegisterPage> {
     final width = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F6FF),
+      backgroundColor: const Color.fromARGB(255, 110, 226, 235),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -61,13 +61,12 @@ class _RegisterPageState extends State<RegisterPage> {
             child: Card(
               elevation: 4,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: const BorderSide(color: Color(0xFF0066CC), width: 3),
+                borderRadius: BorderRadius.circular(12)
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  vertical: 32,
-                  horizontal: 36,
+                  vertical: 24,
+                  horizontal: 24,
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -258,6 +257,71 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                           ),
                           const SizedBox(height: 16),
+
+                          Text("Atau daftar melalui"),
+                          const SizedBox(height: 16),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () {},
+                                  icon: const Icon(
+                                    Icons.facebook,
+                                    color: Color(0xFF1877F2),
+                                  ),
+                                  label: const Text(
+                                    "Facebook",
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    minimumSize: Size(double.infinity, 56),
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      side: const BorderSide(color: Colors.black, width: 1),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(width: 12),
+
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () {},
+                                  icon: const Icon(
+                                    Icons.wechat,
+                                    color: Color(0xFF09B83E),
+                                  ),
+                                  label: const Text(
+                                    "WeChat",
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    minimumSize: Size(double.infinity, 56),
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      side: const BorderSide(color: Colors.black, width: 1),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 16),
 
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
