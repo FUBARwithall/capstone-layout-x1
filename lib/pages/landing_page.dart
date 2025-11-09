@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:layout_x1/pages/login_page.dart';
+import 'package:flutter/services.dart' show rootBundle;
+
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
@@ -9,28 +12,21 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
-  final List<Map<String, String>> _articles = [
-    {
-      'title': 'Tips Merawat Kulit Berjerawat',
-      'description': 'Panduan lengkap untuk mengatasi jerawat membandel',
-      'image': '🧴',
-    },
-    {
-      'title': 'Pentingnya Sunscreen Setiap Hari',
-      'description': 'Lindungi kulitmu dari bahaya sinar UV',
-      'image': '☀️',
-    },
-    {
-      'title': 'Skincare Routine untuk Pemula',
-      'description': 'Mulai perjalanan skincare dengan langkah yang tepat',
-      'image': '✨',
-    },
-    {
-      'title': 'Mengenal Jenis Kulit Wajah',
-      'description': 'Kenali jenis kulitmu untuk treatment yang tepat',
-      'image': '🔍',
-    },
-  ];
+  List<dynamic> _articles = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadArticles();
+  }
+
+  Future<void> _loadArticles() async {
+    final jsonString = await rootBundle.loadString('assets/data/articles.json');
+    final data = json.decode(jsonString);
+    setState(() {
+      _articles = data;
+    });
+  }
 
   void _showComingSoonDialog(String feature) {
     showDialog(

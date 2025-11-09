@@ -284,10 +284,15 @@ class _RegisterPageState extends State<RegisterPage> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.white,
                                     minimumSize: Size(double.infinity, 56),
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      side: const BorderSide(color: Colors.black, width: 1),
+                                      side: const BorderSide(
+                                        color: Colors.black,
+                                        width: 1,
+                                      ),
                                     ),
                                     elevation: 0,
                                   ),
@@ -313,10 +318,15 @@ class _RegisterPageState extends State<RegisterPage> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.white,
                                     minimumSize: Size(double.infinity, 56),
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      side: const BorderSide(color: Colors.black, width: 1),
+                                      side: const BorderSide(
+                                        color: Colors.black,
+                                        width: 1,
+                                      ),
                                     ),
                                     elevation: 0,
                                   ),
