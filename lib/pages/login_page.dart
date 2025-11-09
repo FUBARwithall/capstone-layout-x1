@@ -14,6 +14,7 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _obscurePassword = true;
   bool _isLoading = false;
+  AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
   @override
   void dispose() {
@@ -26,7 +27,6 @@ class _LoginPageState extends State<LoginPage> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      // Simulate API call
       await Future.delayed(const Duration(seconds: 2));
 
       setState(() => _isLoading = false);
@@ -38,7 +38,13 @@ class _LoginPageState extends State<LoginPage> {
             backgroundColor: Colors.green,
           ),
         );
+
+        Navigator.pushNamed(context, '/homepage');
       }
+    } else {
+      setState(() {
+        _autovalidateMode = AutovalidateMode.onUserInteraction;
+      });
     }
   }
 
@@ -84,6 +90,7 @@ class _LoginPageState extends State<LoginPage> {
 
                     Form(
                       key: _formKey,
+                      autovalidateMode: _autovalidateMode,
                       child: Column(
                         children: [
                           TextFormField(
@@ -279,7 +286,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               TextButton(
                                 onPressed: () {
-                                  Navigator.pushNamed(context, '/');
+                                  Navigator.pushNamed(context, '/register');
                                 },
                                 child: const Text(
                                   'Daftar',

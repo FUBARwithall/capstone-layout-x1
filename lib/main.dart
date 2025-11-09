@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:layout_x1/pages/register_page.dart';
 import 'package:layout_x1/pages/login_page.dart';
-import 'package:layout_x1/pages/landing_page.dart';
+import 'package:layout_x1/pages/register_page.dart';
+import 'package:layout_x1/pages/main_scaffold.dart';
 
 void main() {
-  runApp(const Main());
+  runApp(const MyApp());
 }
 
-class Main extends StatelessWidget {
-  const Main({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      initialRoute: '/',
+      title: 'SkinCare AI',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      initialRoute: '/login',
       routes: {
-        '/': (context) => RegisterPage(),
-        '/login': (context) => LoginPage(),
-        '/landing': (context) => LandingPage(),
+        '/login': (context) => const LoginPage(),
+        '/register': (context) => const RegisterPage(),
+        '/homepage': (context) => const MainScaffold(),
       },
     );
   }
