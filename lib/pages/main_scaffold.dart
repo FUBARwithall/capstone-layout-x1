@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+// import 'package:layout_x1/pages/articlepage.dart';
 import 'package:layout_x1/pages/login_page.dart';
 import 'package:layout_x1/pages/landing_page_body.dart';
+import 'package:layout_x1/pages/profilpage.dart';
+import 'package:layout_x1/pages/pantaupage.dart';
+import 'package:layout_x1/pages/pengaturan.dart';
 import 'package:layout_x1/widgets/common_dialogs.dart';
 
 class MainScaffold extends StatefulWidget {
@@ -26,7 +30,6 @@ class _MainScaffoldState extends State<MainScaffold> {
     _pageController.jumpToPage(index);
   }
 
-
   @override
   void dispose() {
     _pageController.dispose();
@@ -37,40 +40,9 @@ class _MainScaffoldState extends State<MainScaffold> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF9F6FF),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 2,
-        title: Row(
-          children: const [
-            Icon(Icons.spa, color: Color(0xFF0066CC)),
-            SizedBox(width: 8),
-            Text(
-              'SkinCare AI',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
-          ],
-        ),
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.black),
-            onPressed: () => showComingSoonDialog(context, 'Notifikasi'),
-          ),
-          Builder(
-            builder: (context) => IconButton(
-              icon: const Icon(Icons.menu, color: Colors.black),
-              onPressed: () {
-                Scaffold.of(context).openEndDrawer();
-              },
-            ),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+      // appBar: AppBar(
+      //   backgroundColor: Colors.white,
+      // ),
       endDrawer: Drawer(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadiusGeometry.circular(0),
@@ -149,18 +121,18 @@ class _MainScaffoldState extends State<MainScaffold> {
         },
         children: [
           LandingPageBody(),
-          ArticlesPageBody(),
-          HistoryPageBody(),
-          SettingsPageBody(),
+          PantauKulitPage(),
+          ProfilPage(),
+          Pengaturan(),
         ],
       ),
       floatingActionButton: _currentIndex == 0
           ? FloatingActionButton.extended(
-              onPressed: () => showComingSoonDialog(context, 'Deteksi Cepat'),
+              onPressed: () => showComingSoonDialog(context, 'Chatbot'),
               backgroundColor: const Color(0xFF0066CC),
-              icon: const Icon(Icons.add_a_photo, color: Colors.white),
+              icon: const Icon(Icons.radio_button_checked_outlined, color: Colors.white),
               label: const Text(
-                'Deteksi Cepat',
+                'Chatbot',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -175,12 +147,10 @@ class _MainScaffoldState extends State<MainScaffold> {
         currentIndex: _currentIndex,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
-          BottomNavigationBarItem(icon: Icon(Icons.article), label: 'Artikel'),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Riwayat'),
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Pantau Kulit'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Pengaturan',
-          ),
+              icon: Icon(Icons.settings), label: 'Pengaturan'),
         ],
         onTap: (index) {
           setState(() {
@@ -197,51 +167,3 @@ class _MainScaffoldState extends State<MainScaffold> {
   }
 }
 
-// Placeholder pages
-class HistoryPageBody extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.history, size: 64, color: Colors.grey[400]),
-          SizedBox(height: 16),
-          Text(
-            'Riwayat',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Fitur akan segera tersedia',
-            style: TextStyle(color: Colors.grey[600]),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class SettingsPageBody extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.settings, size: 64, color: Colors.grey[400]),
-          SizedBox(height: 16),
-          Text(
-            'Pengaturan',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Fitur akan segera tersedia',
-            style: TextStyle(color: Colors.grey[600]),
-          ),
-        ],
-      ),
-    );
-  }
-}

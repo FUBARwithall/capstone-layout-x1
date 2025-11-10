@@ -20,6 +20,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/homepage': (context) => const MainScaffold(),
+        '/pantaukulit': (context) => const MainScaffold(),
       },
     );
   }

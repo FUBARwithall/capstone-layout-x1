@@ -53,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
     final width = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 110, 226, 235),
+      backgroundColor: const Color(0xFFF5F5DC),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
