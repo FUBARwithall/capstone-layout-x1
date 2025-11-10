@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'api_service.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -32,19 +33,49 @@ class _RegisterPageState extends State<RegisterPage> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      await Future.delayed(const Duration(seconds: 2));
-
-      setState(() => _isLoading = false);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Pendaftaran berhasil! Selamat datang 👋'),
-            backgroundColor: Colors.green,
-          ),
+      try {
+        // Panggil API register
+        final result = await ApiService.register(
+          name: _nameController.text.trim(),
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
         );
 
-        Navigator.pushNamed(context, '/homepage');
+        setState(() => _isLoading = false);
+
+        if (mounted) {
+          if (result['success']) {
+            // Registrasi berhasil
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(result['message']),
+                backgroundColor: Colors.green,
+              ),
+            );
+
+            // Navigate ke homepage
+            Navigator.pushNamed(context, '/homepage');
+          } else {
+            // Registrasi gagal
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(result['message']),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        setState(() => _isLoading = false);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Terjadi kesalahan: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } else {
       setState(() {
@@ -89,7 +120,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      "Lorem ipsum dolor sit amet consectetur adipiscing elit.",
+                      "Buat akun untuk memulai perjalanan Anda",
                       style: TextStyle(color: Colors.grey[700]),
                     ),
                     const SizedBox(height: 32),
@@ -139,7 +170,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               if (!RegExp(
                                 r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$',
                               ).hasMatch(value)) {
-                                return 'Mohom masukkan email yang valid';
+                                return 'Mohon masukkan email yang valid';
                               }
                               return null;
                             },
@@ -175,7 +206,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 return 'Mohon masukkan kata sandi';
                               }
                               if (value.length < 6) {
-                                return 'Mohon masukkan kata sandi minimal 6 karakter';
+                                return 'Kata sandi minimal 6 karakter';
                               }
                               return null;
                             },
@@ -209,15 +240,15 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Mohon masukkan konfirmasi kata sandi';
+                                return 'Mohon konfirmasi kata sandi';
                               }
                               if (value != _passwordController.text) {
-                                return 'Mohon masukkan kata sandi yang sama';
+                                return 'Kata sandi tidak sama';
                               }
                               return null;
                             },
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 24),
 
                           SizedBox(
                             width: double.infinity,
@@ -245,7 +276,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                         ),
                                         SizedBox(width: 12),
                                         Text(
-                                          'Processing...',
+                                          'Mendaftar...',
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 16,
@@ -302,9 +333,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                   ),
                                 ),
                               ),
-
                               const SizedBox(width: 12),
-
                               Expanded(
                                 child: ElevatedButton.icon(
                                   onPressed: () {},

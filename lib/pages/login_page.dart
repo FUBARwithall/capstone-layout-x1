@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'api_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -27,19 +28,52 @@ class _LoginPageState extends State<LoginPage> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      await Future.delayed(const Duration(seconds: 2));
-
-      setState(() => _isLoading = false);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Login berhasil! Selamat datang kembali 👋'),
-            backgroundColor: Colors.green,
-          ),
+      try {
+        // Panggil API login
+        final result = await ApiService.login(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
         );
 
-        Navigator.pushNamed(context, '/homepage');
+        setState(() => _isLoading = false);
+
+        if (mounted) {
+          if (result['success']) {
+            // Login berhasil
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(result['message']),
+                backgroundColor: Colors.green,
+              ),
+            );
+
+            // Simpan data user jika diperlukan
+            final userData = result['data'];
+            print('User logged in: ${userData['name']} (${userData['email']})');
+
+            // Navigate ke homepage
+            Navigator.pushNamed(context, '/homepage');
+          } else {
+            // Login gagal
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(result['message']),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        setState(() => _isLoading = false);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Terjadi kesalahan: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } else {
       setState(() {
@@ -62,7 +96,7 @@ class _LoginPageState extends State<LoginPage> {
             child: Card(
               elevation: 4,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
@@ -181,7 +215,7 @@ class _LoginPageState extends State<LoginPage> {
                                         ),
                                         SizedBox(width: 12),
                                         Text(
-                                          'Processing...',
+                                          'Masuk...',
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 16,
