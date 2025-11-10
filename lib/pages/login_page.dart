@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'api_service.dart';
+import 'api_service.dart'; // Import API service
+import 'user_preferences.dart'; // Import user preferences
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -40,16 +41,24 @@ class _LoginPageState extends State<LoginPage> {
         if (mounted) {
           if (result['success']) {
             // Login berhasil
+            final userData = result['data'];
+
+            // Simpan data user ke SharedPreferences
+            await UserPreferences.saveUser(
+              id: userData['id'],
+              name: userData['name'],
+              email: userData['email'],
+            );
+
+            // Debug: Cek data tersimpan
+            print('User logged in: ${userData['name']} (${userData['email']})');
+
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(result['message']),
                 backgroundColor: Colors.green,
               ),
             );
-
-            // Simpan data user jika diperlukan
-            final userData = result['data'];
-            print('User logged in: ${userData['name']} (${userData['email']})');
 
             // Navigate ke homepage
             Navigator.pushNamed(context, '/homepage');

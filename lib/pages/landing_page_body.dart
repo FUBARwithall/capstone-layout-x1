@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:layout_x1/widgets/common_dialogs.dart';
 import 'package:layout_x1/pages/articlepage.dart';
+import 'user_preferences.dart'; // Import user preferences
 
 class LandingPageBody extends StatefulWidget {
   @override
@@ -11,11 +12,37 @@ class LandingPageBody extends StatefulWidget {
 
 class _LandingPageBodyState extends State<LandingPageBody> {
   List<dynamic> _articles = [];
+  String _userName = 'Beranda'; // Default
+  bool _isLoadingUser = true;
 
   @override
   void initState() {
     super.initState();
     _loadArticles();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    try {
+      final userData = await UserPreferences.getUser();
+
+      if (userData != null) {
+        setState(() {
+          _userName = userData['name'];
+          _isLoadingUser = false;
+        });
+      } else {
+        setState(() {
+          _userName = 'Beranda';
+          _isLoadingUser = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _userName = 'Beranda';
+        _isLoadingUser = false;
+      });
+    }
   }
 
   Future<void> _loadArticles() async {
@@ -39,14 +66,29 @@ class _LandingPageBodyState extends State<LandingPageBody> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 2,
-        title: const Text(
-          'Beranda',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
+        title: _isLoadingUser
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Row(
+                children: [
+                  const Icon(Icons.waving_hand, color: Colors.amber, size: 24),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      'Halo, $_userName',
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
         automaticallyImplyLeading: false,
       ),
 
@@ -59,10 +101,7 @@ class _LandingPageBodyState extends State<LandingPageBody> {
               // ==== DETEKSI KULIT ====
               const Text(
                 "Deteksi Kulit",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
 
@@ -74,7 +113,8 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                   side: const BorderSide(color: Color(0xFF0066CC), width: 2),
                 ),
                 child: InkWell(
-                  onTap: () => showComingSoonDialog(context, 'Deteksi Kulit Wajah'),
+                  onTap: () =>
+                      showComingSoonDialog(context, 'Deteksi Kulit Wajah'),
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
                     padding: const EdgeInsets.all(20),
@@ -114,7 +154,8 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                   side: const BorderSide(color: Color(0xFF0066CC), width: 2),
                 ),
                 child: InkWell(
-                  onTap: () => showComingSoonDialog(context, 'Deteksi Kulit Tubuh'),
+                  onTap: () =>
+                      showComingSoonDialog(context, 'Deteksi Kulit Tubuh'),
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
                     padding: const EdgeInsets.all(20),
@@ -152,10 +193,7 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                 children: [
                   const Text(
                     'Artikel Terkini',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
                   TextButton(
                     onPressed: _navigateToArticles,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'api_service.dart';
+import 'api_service.dart'; // Import API service
+import 'user_preferences.dart'; // Import user preferences
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -46,6 +47,20 @@ class _RegisterPageState extends State<RegisterPage> {
         if (mounted) {
           if (result['success']) {
             // Registrasi berhasil
+            final userData = result['data'];
+
+            // Simpan data user ke SharedPreferences
+            await UserPreferences.saveUser(
+              id: userData['id'],
+              name: userData['name'],
+              email: userData['email'],
+            );
+
+            // Debug: Cek data tersimpan
+            print(
+              'User registered: ${userData['name']} (${userData['email']})',
+            );
+
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(result['message']),
