@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 class ApiService {
   // Ganti dengan IP komputer kamu kalau testing di device fisik
   // Kalau di emulator, gunakan 10.0.2.2
-  static const String baseUrl = 'http://192.168.0.131:5000/api';
+  static const String baseUrl = 'http://192.168.56.1:5000/api';
 
   // Untuk device fisik, gunakan IP lokal komputer kamu
   // static const String baseUrl = 'http://192.168.1.xxx:5000/api';

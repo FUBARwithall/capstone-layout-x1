@@ -74,7 +74,7 @@ class _LandingPageBodyState extends State<LandingPageBody> {
               )
             : Row(
                 children: [
-                  const Icon(Icons.waving_hand, color: Colors.amber, size: 24),
+                  const Icon(Icons.person, color: Colors.amber, size: 24),
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(
@@ -229,10 +229,77 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                   );
                 },
               ),
+              SizedBox(height: 20),
+
+
+              // ==== REKOMENDASI PRODUK ====
+              Text(
+                'Rekomendasi Produk',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 12),
+
+              // Daftar produk dalam bentuk scroll horizontal
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildProductCard(
+                      'assets/images/chatbot.png',
+                      'Halodoc+',
+                      'Rp 49.000/bulan',
+                    ),
+                    _buildProductCard(
+                      'assets/images/paket_hemat.png',
+                      'Paket Hemat',
+                      'Diskon s.d. 40%',
+                    ),
+                    _buildProductCard(
+                      'assets/images/promo_november.png',
+                      'Promo November',
+                      'Mulai Rp 15.000',
+                    ),
+                    _buildProductCard(
+                      'assets/images/susu_keluarga.png',
+                      'Susu Keluarga',
+                      'Rp 120.000',
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
       ),
     );
   }
+}
+
+Widget _buildProductCard(String imagePath, String name, String price) {
+  return Container(
+    width: 140,
+    margin: const EdgeInsets.only(right: 12),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.asset(
+            imagePath,
+            height: 100,
+            width: 140,
+            fit: BoxFit.cover,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          name,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        Text(price, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+      ],
+    ),
+  );
 }
