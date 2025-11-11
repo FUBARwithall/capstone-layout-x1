@@ -97,7 +97,7 @@ class _ProfilPageState extends State<ProfilPage> {
             child: Center(
               child: GestureDetector(
                 onTap: () {
-                  // TODO: Implementasi edit profile
+                  // Implementasi edit profile
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Fitur edit profil coming soon!'),
@@ -163,7 +163,7 @@ class _ProfilPageState extends State<ProfilPage> {
                                   ),
                                   TextButton(
                                     onPressed: () {
-                                      // TODO: Implementasi edit profile
+                                      // Implementasi edit profile
                                       ScaffoldMessenger.of(
                                         context,
                                       ).showSnackBar(

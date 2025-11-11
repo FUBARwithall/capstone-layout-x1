@@ -60,8 +60,14 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
-    - assets/data/articles.json
-    - assets/data/images/chatbot.png
+    - assets/data/articles.json 
+    - assets/data/products.json
+    - assets/data/images/deteksitubuh.jpg
+    - assets/data/images/deteksiwajah.jpg
+    - assets/data/images/cacar.jpeg
+    - assets/data/images/berminyak.jpeg
+
+
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

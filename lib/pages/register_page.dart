@@ -104,10 +104,10 @@ class _RegisterPageState extends State<RegisterPage> {
     final width = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5DC),
+      backgroundColor:  Color(0xFFF5F5DC),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           child: SizedBox(
             width: width > 600 ? 500 : double.infinity,
             child: Card(

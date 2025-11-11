@@ -105,11 +105,8 @@ class _PengaturanState extends State<Pengaturan> {
                 // 🔹 Header User Profile
                 Container(
                   decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.blue, Colors.yellow],
-                      begin: Alignment.bottomLeft,
-                      end: Alignment.topRight,
-                    ),
+                    color: Color(0xFF0066CC)
+                    
                   ),
                   padding: const EdgeInsets.symmetric(
                     vertical: 32,
@@ -151,50 +148,25 @@ class _PengaturanState extends State<Pengaturan> {
                   leading: const Icon(Icons.person),
                   title: const Text("Profile"),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {
-                    // TODO: Navigate ke halaman profile
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Fitur Profile coming soon!'),
-                      ),
-                    );
-                  },
+                  onTap: () {},
                 ),
                 ListTile(
                   leading: const Icon(Icons.settings),
                   title: const Text("Setting Aplikasi"),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Fitur Setting coming soon!'),
-                      ),
-                    );
-                  },
+                  onTap: () {},
                 ),
                 ListTile(
                   leading: const Icon(Icons.access_alarm_rounded),
                   title: const Text("History"),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Fitur History coming soon!'),
-                      ),
-                    );
-                  },
+                  onTap: () {},
                 ),
                 ListTile(
                   leading: const Icon(Icons.favorite_border),
                   title: const Text("Favorites"),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Fitur Favorites coming soon!'),
-                      ),
-                    );
-                  },
+                  onTap: () {},
                 ),
                 const Divider(),
 

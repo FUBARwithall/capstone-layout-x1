@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:layout_x1/widgets/common_dialogs.dart';
 import 'package:layout_x1/pages/articlepage.dart';
-import 'user_preferences.dart'; // Import user preferences
+import 'package:layout_x1/pages/productspage.dart';
+import 'user_preferences.dart';
 
 class LandingPageBody extends StatefulWidget {
   @override
@@ -12,13 +12,15 @@ class LandingPageBody extends StatefulWidget {
 
 class _LandingPageBodyState extends State<LandingPageBody> {
   List<dynamic> _articles = [];
-  String _userName = 'Beranda'; // Default
+  List<dynamic> _products = [];
+  String _userName = 'Beranda';
   bool _isLoadingUser = true;
 
   @override
   void initState() {
     super.initState();
     _loadArticles();
+    _loadProducts(); // Tambahan: load data produk
     _loadUserName();
   }
 
@@ -53,11 +55,40 @@ class _LandingPageBodyState extends State<LandingPageBody> {
     });
   }
 
+  Future<void> _loadProducts() async {
+    final jsonString = await rootBundle.loadString('assets/data/products.json');
+    final data = json.decode(jsonString);
+    setState(() {
+      _products = data;
+    });
+  }
+
   void _navigateToArticles() {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => ArticlesPageBody()),
     );
+  }
+
+  void _navigateToProducts() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ProductsPage()),
+    );
+  }
+
+  // Helper function untuk ambil kalimat pertama dari deskripsi
+  String getFirstSentence(String? text) {
+    if (text == null || text.isEmpty) return '';
+    final sentences = text.split(RegExp(r'[.!?]'));
+    if (sentences.isEmpty) return text;
+    String firstSentence = sentences[0].trim();
+    if (!firstSentence.endsWith('.') &&
+        !firstSentence.endsWith('!') &&
+        !firstSentence.endsWith('?')) {
+      firstSentence += '.';
+    }
+    return firstSentence;
   }
 
   @override
@@ -91,7 +122,6 @@ class _LandingPageBodyState extends State<LandingPageBody> {
               ),
         automaticallyImplyLeading: false,
       ),
-
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -113,8 +143,7 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                   side: const BorderSide(color: Color(0xFF0066CC), width: 2),
                 ),
                 child: InkWell(
-                  onTap: () =>
-                      showComingSoonDialog(context, 'Deteksi Kulit Wajah'),
+                  onTap: () => Navigator.pushNamed(context, '/deteksikulitwajah'),
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
                     padding: const EdgeInsets.all(20),
@@ -154,8 +183,7 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                   side: const BorderSide(color: Color(0xFF0066CC), width: 2),
                 ),
                 child: InkWell(
-                  onTap: () =>
-                      showComingSoonDialog(context, 'Deteksi Kulit Tubuh'),
+                  onTap: () => Navigator.pushNamed(context, '/deteksikulittubuh'),
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
                     padding: const EdgeInsets.all(20),
@@ -192,7 +220,7 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Artikel Terkini',
+                    'Artikel & Berita Terkini',
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
                   TextButton(
@@ -206,6 +234,7 @@ class _LandingPageBodyState extends State<LandingPageBody> {
               ),
               const SizedBox(height: 12),
 
+              // === Daftar Artikel (max 3) ===
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -220,86 +249,115 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                       ),
                       title: Text(article['title'] ?? ''),
                       subtitle: Text(
-                        article['description'] ?? '',
+                        getFirstSentence(article['description']),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      onTap: _navigateToArticles,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ArticleDetailPage(article: article),
+                        ),
+                      ),
                     ),
                   );
                 },
               ),
-              SizedBox(height: 20),
-
+              const SizedBox(height: 20),
 
               // ==== REKOMENDASI PRODUK ====
-              Text(
-                'Rekomendasi Produk',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Rekomendasi Produk',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  TextButton(
+                    onPressed: _navigateToProducts,
+                    child: const Text(
+                      'Lihat Semua',
+                      style: TextStyle(color: Color(0xFF0066CC)),
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-              // Daftar produk dalam bentuk scroll horizontal
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _buildProductCard(
-                      'assets/images/chatbot.png',
-                      'Halodoc+',
-                      'Rp 49.000/bulan',
+              // === Daftar Produk (max 5) ===
+              _products.isEmpty
+                  ? const Center(child: CircularProgressIndicator())
+                  : SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: _products.take(5).map((p) {
+                          return _buildProductCard(
+                            p['image'],
+                            p['merek'] ?? '',
+                            'Rp ${p['harga']}',
+                          );
+                        }).toList(),
+                      ),
                     ),
-                    _buildProductCard(
-                      'assets/images/paket_hemat.png',
-                      'Paket Hemat',
-                      'Diskon s.d. 40%',
-                    ),
-                    _buildProductCard(
-                      'assets/images/promo_november.png',
-                      'Promo November',
-                      'Mulai Rp 15.000',
-                    ),
-                    _buildProductCard(
-                      'assets/images/susu_keluarga.png',
-                      'Susu Keluarga',
-                      'Rp 120.000',
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),
       ),
     );
   }
-}
 
-Widget _buildProductCard(String imagePath, String name, String price) {
-  return Container(
-    width: 140,
-    margin: const EdgeInsets.only(right: 12),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Image.asset(
-            imagePath,
-            height: 100,
-            width: 140,
-            fit: BoxFit.cover,
+  Widget _buildProductCard(String? image, String title, String price) {
+    return Container(
+      width: 150,
+      margin: const EdgeInsets.only(right: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 5,
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          name,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        Text(price, style: const TextStyle(fontSize: 14, color: Colors.grey)),
-      ],
-    ),
-  );
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Gambar atau emoji produk
+          Container(
+            height: 120,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(12)),
+            ),
+            child: Center(
+              child: Text(image ?? '🧴', style: const TextStyle(fontSize: 40)),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  price,
+                  style: TextStyle(color: Colors.redAccent, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

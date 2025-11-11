@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-// import 'package:layout_x1/pages/articlepage.dart';
-import 'package:layout_x1/pages/login_page.dart';
 import 'package:layout_x1/pages/landing_page_body.dart';
 import 'package:layout_x1/pages/profilpage.dart';
 import 'package:layout_x1/pages/pantaupage.dart';
@@ -40,80 +38,9 @@ class _MainScaffoldState extends State<MainScaffold> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF9F6FF),
-      // appBar: AppBar(
-      //   backgroundColor: Colors.white,
-      // ),
-      endDrawer: Drawer(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadiusGeometry.circular(0),
-        ),
-        child: ListView(
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.blue, Colors.yellow],
-                  begin: Alignment.bottomLeft,
-                  end: Alignment.topRight,
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.account_circle, size: 64),
-                  Text(
-                    "Welcome!",
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  Text("panjirafi96@gmail.com"),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.person),
-              title: Text("Profile"),
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              leading: Icon(Icons.settings),
-              title: Text("Setting"),
-              onTap: () {
-                Navigator.pop(context);
-                setState(() {
-                  _currentIndex = 3;
-                  _pageController.jumpToPage(3);
-                });
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.access_alarm_rounded),
-              title: Text("History"),
-              onTap: () {
-                Navigator.pop(context);
-                setState(() {
-                  _currentIndex = 2;
-                  _pageController.jumpToPage(2);
-                });
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.favorite_border),
-              title: Text("Favorites"),
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              leading: Icon(Icons.logout),
-              title: Text("Logout"),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => LoginPage()),
-              ),
-            ),
-          ],
-        ),
-      ),
       body: PageView(
         controller: _pageController,
+        physics: NeverScrollableScrollPhysics(),
         onPageChanged: (index) {
           setState(() {
             _currentIndex = index;
