@@ -16,10 +16,6 @@ class _PantauKulitPageState extends State<PantauKulitPage> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Pemantau Kesehatan Kulit',
-      theme: ThemeData(
-        primarySwatch: Colors.teal,
-        useMaterial3: true,
-      ),
       home: const SkinHealthTracker(),
     );
   }
@@ -56,7 +52,7 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pemantau Kesehatan Kulit'),
-        backgroundColor: Colors.teal,
+        backgroundColor: Color(0xFF0066CC),
         foregroundColor: Colors.white,
         elevation: 0,
         bottom: TabBar(
@@ -93,7 +89,7 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
           Card(
             elevation: 2,
             child: ListTile(
-              leading: const Icon(Icons.calendar_today, color: Colors.teal),
+              leading: const Icon(Icons.calendar_today, color: Color(0xFF0066CC)),
               title: const Text('Tanggal'),
               subtitle: const Text('11 November 2025'),
               trailing: const Icon(Icons.chevron_right),
@@ -177,7 +173,7 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
                     max: 10,
                     divisions: 9,
                     label: _skinCondition.toInt().toString(),
-                    activeColor: Colors.teal,
+                    activeColor: Color(0xFF0066CC),
                     onChanged: (value) {
                       setState(() {
                         _skinCondition = value;
@@ -230,7 +226,7 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
               const SizedBox(width: 8),
               Container(
                 decoration: const BoxDecoration(
-                  color: Colors.teal,
+                  color: Color(0xFF0066CC),
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
@@ -250,8 +246,8 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
                 label: Text(food),
                 deleteIcon: const Icon(Icons.close, size: 18),
                 onDeleted: () {},
-                backgroundColor: Colors.teal[50],
-                labelStyle: const TextStyle(color: Colors.teal),
+                backgroundColor: Colors.blue[50],
+                labelStyle: const TextStyle(color: Color(0xFF0066CC)),
               );
             }).toList(),
           ),
@@ -281,7 +277,7 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
               const SizedBox(width: 8),
               Container(
                 decoration: const BoxDecoration(
-                  color: Colors.teal,
+                  color: Color(0xFF0066CC),
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
@@ -329,26 +325,7 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
           ),
           const SizedBox(height: 24),
 
-          // Catatan Tambahan
-          const Text(
-            'Catatan Tambahan',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 12),
-          const TextField(
-            maxLines: 4,
-            decoration: InputDecoration(
-              hintText: 'Catatan kondisi kulit atau gejala lainnya...',
-              border: OutlineInputBorder(),
-              alignLabelWithHint: true,
-            ),
-          ),
-          const SizedBox(height: 32),
-
+          
           // Tombol Simpan
           SizedBox(
             width: double.infinity,
@@ -356,7 +333,7 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
             child: ElevatedButton(
               onPressed: () {},
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
+                backgroundColor: Color(0xFF0066CC),
                 foregroundColor: Colors.white,
                 elevation: 4,
                 shape: RoundedRectangleBorder(
@@ -421,7 +398,7 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.trending_up, color: Colors.teal),
+                      Icon(Icons.trending_up, color: Color(0xFF0066CC)),
                       SizedBox(width: 8),
                       Text(
                         'Tren Kondisi Kulit',
