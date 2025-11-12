@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:layout_x1/pages/chatbot.dart';
 import 'package:layout_x1/pages/login_page.dart';
+import 'package:layout_x1/pages/pantaupage.dart';
 import 'package:layout_x1/pages/productspage.dart';
 import 'package:layout_x1/pages/register_page.dart';
 import 'package:layout_x1/pages/main_scaffold.dart';
 import 'package:layout_x1/pages/body_detectionpage.dart';
 import 'package:layout_x1/pages/face_detectionpage.dart';
-
+import 'package:layout_x1/pages/reminder.dart';
 
 void main() {
   runApp(const MyApp());
@@ -24,10 +26,12 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/homepage': (context) => const MainScaffold(),
-        '/pantaukulit': (context) => const MainScaffold(),
+        '/pantaukulit': (context) => const PantauKulitPage(),
         '/deteksikulittubuh': (context) => const BodyDetectionpage(),
         '/deteksikulitwajah': (context) => const FaceDetectionpage(),
-        '/products' : (context) => const ProductsPage()
+        '/products' : (context) => const ProductsPage(),
+        '/reminder' : (context) => const ReminderSkincare(),
+        '/chatbot' : (context) => const ChatbotPage()
       },
     );
   }

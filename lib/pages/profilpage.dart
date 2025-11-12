@@ -20,67 +20,36 @@ class _ProfilPageState extends State<ProfilPage> {
   }
 
   Future<void> _loadUserData() async {
-  print('=== DEBUG PROFIL PAGE ===');
-  
-  try {
-    final userData = await UserPreferences.getUser();
-    print('User data loaded: $userData');
-    
-    if (userData != null) {
-      setState(() {
-        _userName = userData['name'];
-        _userEmail = userData['email'];
-        _isLoading = false;
-      });
-      print('State updated with: $_userName, $_userEmail');
-    } else {
-      print('User data is NULL');
-      setState(() {
-        _userName = 'Guest User';
-        _userEmail = 'guest@example.com';
-        _isLoading = false;
-      });
-    }
-  } catch (e) {
-    print('Error loading user: $e');
-    setState(() {
-      _userName = 'Error loading user';
-      _isLoading = false;
-    });
-  }
-  
-  print('=========================');
-}
+    print('=== DEBUG PROFIL PAGE ===');
 
-  Future<void> _handleLogout() async {
-    // Tampilkan dialog konfirmasi
-    final shouldLogout = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Apakah Anda yakin ingin keluar?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Logout', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
+    try {
+      final userData = await UserPreferences.getUser();
+      print('User data loaded: $userData');
 
-    if (shouldLogout == true) {
-      // Hapus data user
-      await UserPreferences.clearUser();
-
-      if (mounted) {
-        // Kembali ke login page
-        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      if (userData != null) {
+        setState(() {
+          _userName = userData['name'];
+          _userEmail = userData['email'];
+          _isLoading = false;
+        });
+        print('State updated with: $_userName, $_userEmail');
+      } else {
+        print('User data is NULL');
+        setState(() {
+          _userName = 'Guest User';
+          _userEmail = 'guest@example.com';
+          _isLoading = false;
+        });
       }
+    } catch (e) {
+      print('Error loading user: $e');
+      setState(() {
+        _userName = 'Error loading user';
+        _isLoading = false;
+      });
     }
+
+    print('=========================');
   }
 
   @override
@@ -88,33 +57,9 @@ class _ProfilPageState extends State<ProfilPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFD32F2F),
-        elevation: 0,
+        backgroundColor: const Color(0xFF0066CC),
+        foregroundColor: Colors.white,
         title: const Text('Profil Saya', style: TextStyle(color: Colors.white)),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Center(
-              child: GestureDetector(
-                onTap: () {
-                  // Implementasi edit profile
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Fitur edit profil coming soon!'),
-                    ),
-                  );
-                },
-                child: const Text(
-                  'Ganti',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
 
       body: _isLoading
@@ -125,7 +70,7 @@ class _ProfilPageState extends State<ProfilPage> {
                   // Bagian atas kartu profil
                   Container(
                     width: double.infinity,
-                    color: const Color(0xFFD32F2F),
+                    color: const Color(0xFF0066CC),
                     child: Column(
                       children: [
                         Container(
@@ -156,7 +101,7 @@ class _ProfilPageState extends State<ProfilPage> {
                                       style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.red,
+                                        color: Color(0xFF0066CC),
                                       ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -198,37 +143,17 @@ class _ProfilPageState extends State<ProfilPage> {
                   ),
 
                   // Bagian menu Kesehatan
+                  // Bagian menu Kesehatan
                   buildSectionTitle('Tingkatkan Kesehatanmu'),
                   buildMenuItem(
                     icon: Icons.alarm,
                     title: 'Pengingat Skincare Harian',
                     subtitle: 'Pengingat untuk perawatan kulit tepat waktu.',
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      '/reminder',
+                    ), // ⬅️ ini yang menavigasi
                   ),
-
-                  const SizedBox(height: 16),
-
-                  // Tombol Logout
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: _handleLogout,
-                        icon: const Icon(Icons.logout),
-                        label: const Text('Logout'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 80),
                 ],
               ),
             ),
@@ -254,6 +179,7 @@ class _ProfilPageState extends State<ProfilPage> {
     required IconData icon,
     required String title,
     required String subtitle,
+    VoidCallback? onTap,
   }) {
     return ListTile(
       leading: CircleAvatar(
@@ -263,7 +189,7 @@ class _ProfilPageState extends State<ProfilPage> {
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: Text(subtitle),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () {},
+      onTap: onTap,
     );
   }
 }

@@ -3,7 +3,6 @@ import 'package:layout_x1/pages/landing_page_body.dart';
 import 'package:layout_x1/pages/profilpage.dart';
 import 'package:layout_x1/pages/pantaupage.dart';
 import 'package:layout_x1/pages/pengaturan.dart';
-import 'package:layout_x1/widgets/common_dialogs.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
@@ -55,11 +54,11 @@ class _MainScaffoldState extends State<MainScaffold> {
       ),
       floatingActionButton: _currentIndex == 0
           ? FloatingActionButton.extended(
-              onPressed: () => showComingSoonDialog(context, 'Chatbot'),
+              onPressed: () => Navigator.pushNamed(context, '/chatbot'),
               backgroundColor: const Color(0xFF0066CC),
               icon: const Icon(Icons.radio_button_checked_outlined, color: Colors.white),
               label: const Text(
-                'Chatbot',
+                'Glowie',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.white,

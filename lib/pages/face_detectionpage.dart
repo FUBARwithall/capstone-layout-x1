@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:layout_x1/pages/pantaupage.dart';
 
 class FaceDetectionpage extends StatefulWidget {
   const FaceDetectionpage({super.key});
@@ -50,39 +51,48 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 80.0, vertical: 40.0),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                bool isWide = constraints.maxWidth > 800;
-                return Column(
-                  children: [
-                    if (isWide)
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(child: _buildLeftContent()),
-                          const SizedBox(width: 60),
-                          Expanded(child: _buildRightImage()),
-                        ],
-                      )
-                    else
-                      Column(
-                        children: [
-                          _buildLeftContent(),
-                          const SizedBox(height: 32),
-                          _buildRightImage(),
-                        ],
-                      ),
-                    if (showResult)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 40),
-                        child: _buildDetectionAndProductCombined(),
-                      ),
-                  ],
-                );
-              },
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1200),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 40.0,
+                  vertical: 40.0,
+                ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    bool isWide = constraints.maxWidth > 800;
+                    return Column(
+                      children: [
+                        if (isWide)
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(child: _buildLeftContent()),
+                              const SizedBox(width: 60),
+                              Expanded(child: _buildRightImage()),
+                            ],
+                          )
+                        else
+                          Column(
+                            children: [
+                              _buildLeftContent(),
+                              const SizedBox(height: 32),
+                              _buildRightImage(),
+                            ],
+                          ),
+                        if (showResult)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 40),
+                            child: _buildDetectionAndProductCombined(
+                              constraints,
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+              ),
             ),
           ),
         ),
@@ -114,7 +124,6 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
             ElevatedButton(
               onPressed: () {
                 setState(() {
-                  // saat upload → tampilkan wajah berminyak
                   uploadedImagePath = 'assets/data/images/berminyak.jpeg';
                   showResult = false;
                 });
@@ -123,7 +132,9 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
                 backgroundColor: const Color(0xFF0066CC),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 28.0, vertical: 14.0),
+                  horizontal: 28.0,
+                  vertical: 14.0,
+                ),
               ),
               child: const Text('Upload'),
             ),
@@ -138,7 +149,9 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
                     : Colors.grey,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 28.0, vertical: 14.0),
+                  horizontal: 28.0,
+                  vertical: 14.0,
+                ),
               ),
               child: const Text('Deteksi'),
             ),
@@ -149,7 +162,11 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
   }
 
   // 🧾 Hasil deteksi & produk
-  Widget _buildDetectionAndProductCombined() {
+  Widget _buildDetectionAndProductCombined(BoxConstraints constraints) {
+    int crossAxisCount = 3;
+    if (constraints.maxWidth < 900) crossAxisCount = 2;
+    if (constraints.maxWidth < 600) crossAxisCount = 1;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -168,23 +185,66 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              Icon(Icons.medical_information,
-                  color: Color(0xFF0066CC), size: 28),
-              SizedBox(width: 10),
-              Text(
-                'Hasil Deteksi & Rekomendasi',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C2C2C),
+            children: [
+              const Icon(
+                Icons.medical_information,
+                color: Color(0xFF0066CC),
+                size: 28,
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Hasil Deteksi & Rekomendasi',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2C2C2C),
+                  ),
+                  overflow: TextOverflow.ellipsis, // biar teks tidak overflow
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PantauKulitPage(),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.teal,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                    icon: const Icon(
+                      Icons.monitor_heart,
+                      size: 20,
+                      color: Colors.white,
+                    ),
+                    label: const Text(
+                      'Pantau Kulit',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
-          const Divider(height: 24, thickness: 1),
 
-          // Jenis kulit
+          const Divider(height: 24, thickness: 1),
           _buildSection(
             icon: Icons.healing,
             title: 'Kondisi Kulit Terdeteksi',
@@ -201,8 +261,6 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
             ),
           ),
           const SizedBox(height: 20),
-
-          // Hal yang perlu dilakukan
           _buildListSection(
             icon: Icons.check_circle_outline,
             title: 'Hal yang Perlu Dilakukan',
@@ -210,8 +268,6 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
             color: Colors.blue,
           ),
           const SizedBox(height: 20),
-
-          // Rekomendasi produk
           _buildListSection(
             icon: Icons.medication,
             title: 'Produk yang Direkomendasikan',
@@ -220,13 +276,12 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
           ),
           const SizedBox(height: 16),
 
-          // Produk berbentuk kartu
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: rekomendasiProduk.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
               childAspectRatio: 0.85,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
@@ -250,16 +305,20 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      height: 400,
+                      height: 160,
                       width: double.infinity,
                       decoration: BoxDecoration(
                         color: Colors.grey[300],
                         borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(12)),
+                          top: Radius.circular(12),
+                        ),
                       ),
                       child: Center(
-                        child: Icon(Icons.image,
-                            size: 50, color: Colors.grey[400]),
+                        child: Icon(
+                          Icons.image,
+                          size: 50,
+                          color: Colors.grey[400],
+                        ),
                       ),
                     ),
                     Expanded(
@@ -277,7 +336,7 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
                                 fontSize: 13,
                               ),
                             ),
-                            SizedBox(height: 20),
+                            const SizedBox(height: 8),
                             Text(
                               produk['harga']!,
                               style: const TextStyle(
@@ -296,8 +355,6 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
           ),
 
           const SizedBox(height: 20),
-
-          // Disclaimer
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -307,8 +364,11 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
             ),
             child: Row(
               children: [
-                Icon(Icons.warning_amber_rounded,
-                    color: Colors.amber.shade700, size: 20),
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.amber.shade700,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -340,9 +400,14 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
           children: [
             Icon(icon, color: color, size: 20),
             const SizedBox(width: 8),
-            Text(title,
-                style: TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.bold, color: color)),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -409,7 +474,9 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
                           width: 6,
                           height: 6,
                           decoration: BoxDecoration(
-                              color: color, shape: BoxShape.circle),
+                            color: color,
+                            shape: BoxShape.circle,
+                          ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -450,8 +517,11 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
               return const Center(
-                child: Icon(Icons.image_not_supported_outlined,
-                    size: 48, color: Colors.grey),
+                child: Icon(
+                  Icons.image_not_supported_outlined,
+                  size: 48,
+                  color: Colors.grey,
+                ),
               );
             },
           ),

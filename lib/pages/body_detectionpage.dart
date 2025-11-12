@@ -11,7 +11,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
   String? uploadedImagePath;
   bool showResult = false;
 
-  // 🧠 Data dummy hasil deteksi CACAR
+  // 🧠 Data dummy hasil deteksi
   final Map<String, dynamic> detectionResult = {
     'penyakit': 'Cacar (Chickenpox)',
     'deskripsi':
@@ -42,47 +42,51 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF0066CC),
         foregroundColor: Colors.white,
         title: const Text('Deteksi Tubuh'),
+        centerTitle: true,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 80.0, vertical: 40.0),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                bool isWide = constraints.maxWidth > 800;
-                return Column(
-                  children: [
-                    if (isWide)
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(child: _buildLeftContent()),
-                          const SizedBox(width: 60),
-                          Expanded(child: _buildRightImage()),
-                        ],
-                      )
-                    else
-                      Column(
-                        children: [
-                          _buildLeftContent(),
-                          const SizedBox(height: 32),
-                          _buildRightImage(),
-                        ],
-                      ),
-                    if (showResult)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 40),
-                        child: _buildDetectionAndProductCombined(),
-                      ),
-                  ],
-                );
-              },
-            ),
+          padding: EdgeInsets.symmetric(
+            horizontal: screenWidth < 600 ? 20 : screenWidth * 0.1,
+            vertical: 30,
+          ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              bool isWide = constraints.maxWidth > 800;
+              return Column(
+                children: [
+                  // 📷 Layout responsif (horizontal untuk desktop, vertikal untuk HP)
+                  isWide
+                      ? Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(child: _buildLeftContent()),
+                            const SizedBox(width: 40),
+                            Expanded(child: _buildRightImage(constraints)),
+                          ],
+                        )
+                      : Column(
+                          children: [
+                            _buildLeftContent(),
+                            const SizedBox(height: 32),
+                            _buildRightImage(constraints),
+                          ],
+                        ),
+                  if (showResult)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 40),
+                      child: _buildDetectionAndProductCombined(constraints),
+                    ),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -108,7 +112,9 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
           style: TextStyle(fontSize: 14, height: 1.6, color: Color(0xFF5C5C5C)),
         ),
         const SizedBox(height: 24),
-        Row(
+        Wrap(
+          spacing: 16,
+          runSpacing: 8,
           children: [
             ElevatedButton(
               onPressed: () {
@@ -120,20 +126,20 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF0066CC),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 14.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 28.0, vertical: 14.0),
               ),
               child: const Text('Upload'),
             ),
-            const SizedBox(width: 16),
             ElevatedButton(
-              onPressed: uploadedImagePath != null
-                  ? () => setState(() => showResult = true)
-                  : null,
+              onPressed:
+                  uploadedImagePath != null ? () => setState(() => showResult = true) : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor:
                     uploadedImagePath != null ? const Color(0xFF0066CC) : Colors.grey,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 14.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 28.0, vertical: 14.0),
               ),
               child: const Text('Deteksi'),
             ),
@@ -143,8 +149,10 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
     );
   }
 
-  // 🧾 TAMPILAN HASIL DETEKSI & PRODUK
-  Widget _buildDetectionAndProductCombined() {
+  Widget _buildDetectionAndProductCombined(BoxConstraints constraints) {
+    final isWide = constraints.maxWidth > 800;
+    final crossCount = isWide ? 3 : (constraints.maxWidth > 600 ? 2 : 1);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -162,23 +170,29 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Judul dan tombol Pantau Kulit
           Row(
-            children: const [
-              Icon(Icons.medical_information, color: Color(0xFF0066CC), size: 28),
-              SizedBox(width: 10),
-              Text(
-                'Hasil Deteksi & Rekomendasi',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C2C2C),
-                ),
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.medical_information,
+                      color: Color(0xFF0066CC), size: 28),
+                  SizedBox(width: 10),
+                  Text(
+                    'Hasil Deteksi & Rekomendasi',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2C2C2C),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
           const Divider(height: 24, thickness: 1),
 
-          // Penyakit terdeteksi
           _buildSection(
             icon: Icons.healing,
             title: 'Penyakit Terdeteksi',
@@ -195,8 +209,6 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
             ),
           ),
           const SizedBox(height: 20),
-
-          // Hal yang perlu dilakukan
           _buildListSection(
             icon: Icons.checklist,
             title: 'Hal yang Perlu Dilakukan',
@@ -204,24 +216,22 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
             color: Colors.orange,
           ),
           const SizedBox(height: 20),
-
-          // Obat & produk
           _buildListSection(
             icon: Icons.medication,
             title: 'Obat & Produk yang Direkomendasikan',
             items: detectionResult['obat'],
             color: Colors.green,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
-          // Produk berbentuk kartu
+          // Produk (responsif grid)
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: rekomendasiProduk.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              childAspectRatio: 0.85,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossCount,
+              childAspectRatio: 0.8,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
             ),
@@ -243,20 +253,22 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Gambar dummy produk
-                    Container(
-                      height: 400,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius:
-                            const BorderRadius.vertical(top: Radius.circular(12)),
-                      ),
-                      child: Center(
-                        child: Icon(Icons.image, size: 50, color: Colors.grey[400]),
+                    Flexible(
+                      flex: 2,
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius:
+                              const BorderRadius.vertical(top: Radius.circular(12)),
+                        ),
+                        child: const Center(
+                          child: Icon(Icons.image, size: 40, color: Colors.grey),
+                        ),
                       ),
                     ),
                     Expanded(
+                      flex: 1,
                       child: Padding(
                         padding: const EdgeInsets.all(10),
                         child: Column(
@@ -264,20 +276,18 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
                           children: [
                             Text(
                               produk['nama']!,
-                              maxLines: 1,
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
+                                  fontWeight: FontWeight.bold, fontSize: 13),
                             ),
-                            SizedBox(height: 20),
+                            const Spacer(),
                             Text(
                               produk['harga']!,
                               style: const TextStyle(
-                                color: Colors.red,
-                                fontWeight: FontWeight.w600,
-                              ),
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13),
                             ),
                           ],
                         ),
@@ -288,7 +298,6 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
               );
             },
           ),
-
           const SizedBox(height: 20),
 
           // Disclaimer
@@ -426,19 +435,22 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
     );
   }
 
-  Widget _buildRightImage() {
-    return Align(
-      alignment: Alignment.topCenter,
+  Widget _buildRightImage(BoxConstraints constraints) {
+    final isWide = constraints.maxWidth > 800;
+    final imageWidth = isWide ? 400.0 : double.infinity;
+    final imageHeight = isWide ? 300.0 : 250.0;
+
+    return Center(
       child: Container(
-        width: 400,
-        height: 300,
+        width: imageWidth,
+        height: imageHeight,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.black, width: 3),
+          border: Border.all(color: Colors.black, width: 2),
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(13),
+          borderRadius: BorderRadius.circular(14),
           child: Image.asset(
             uploadedImagePath ?? 'assets/data/images/deteksitubuh.jpg',
             fit: BoxFit.cover,

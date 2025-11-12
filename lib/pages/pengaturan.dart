@@ -104,10 +104,7 @@ class _PengaturanState extends State<Pengaturan> {
               children: [
                 // 🔹 Header User Profile
                 Container(
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF0066CC)
-                    
-                  ),
+                  decoration: const BoxDecoration(color: Color(0xFF0066CC)),
                   padding: const EdgeInsets.symmetric(
                     vertical: 32,
                     horizontal: 16,
@@ -145,17 +142,60 @@ class _PengaturanState extends State<Pengaturan> {
 
                 // 🔹 Daftar menu pengaturan
                 ListTile(
-                  leading: const Icon(Icons.person),
-                  title: const Text("Profile"),
+                  leading: const Icon(Icons.apps),
+                  title: const Text("Tentang Kami"),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {},
                 ),
                 ListTile(
-                  leading: const Icon(Icons.settings),
-                  title: const Text("Setting Aplikasi"),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {},
+                  leading: const Icon(Icons.language),
+                  title: const Text("Bahasa Aplikasi"),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min, // agar row menyesuaikan isi
+                    children: [
+                      // Tombol Bahasa Indonesia
+                      ElevatedButton(
+                        onPressed: () {
+                          // Aksi ubah bahasa ke Indonesia
+                          print("Bahasa: Indonesia");
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueAccent,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          minimumSize: const Size(0, 32),
+                        ),
+                        child: const Text(
+                          "ID",
+                          style: TextStyle(fontSize: 12, color: Colors.white),
+                        ),
+                      ),
+                      const SizedBox(width: 8), // jarak antar tombol
+                      // Tombol Bahasa Inggris
+                      ElevatedButton(
+                        onPressed: () {
+                          // Aksi ubah bahasa ke Inggris
+                          print("Bahasa: English");
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          minimumSize: const Size(0, 32),
+                        ),
+                        child: const Text(
+                          "EN",
+                          style: TextStyle(fontSize: 12, color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+
                 ListTile(
                   leading: const Icon(Icons.access_alarm_rounded),
                   title: const Text("History"),
