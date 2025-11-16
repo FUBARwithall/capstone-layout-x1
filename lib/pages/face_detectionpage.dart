@@ -12,7 +12,7 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
   String? uploadedImagePath;
   bool showResult = false;
 
-  // 🧠 Data dummy hasil deteksi WAJAH BERMINYAK
+  // 🧠 dummy hasil deteksi
   final Map<String, dynamic> detectionResult = {
     'penyakit': 'Wajah Berminyak (Oily Skin)',
     'deskripsi':
@@ -32,7 +32,7 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
     ],
   };
 
-  // 💊 Produk yang relevan dengan wajah berminyak
+  // 💊 dummy produk
   final List<Map<String, String>> rekomendasiProduk = [
     {'nama': 'Wardah Acnederm Pure Foaming Cleanser', 'harga': 'Rp38.000'},
     {'nama': 'Emina Ms. Pimple Acne Solution Toner', 'harga': 'Rp32.000'},
@@ -161,7 +161,7 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
     );
   }
 
-  // 🧾 Hasil deteksi & produk
+  // hasil deteksi & produk
   Widget _buildDetectionAndProductCombined(BoxConstraints constraints) {
     int crossAxisCount = 3;
     if (constraints.maxWidth < 900) crossAxisCount = 2;
@@ -200,7 +200,7 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF2C2C2C),
                   ),
-                  overflow: TextOverflow.ellipsis, // biar teks tidak overflow
+                  overflow: TextOverflow.ellipsis, // agar teks tidak overflow
                 ),
               ),
               const SizedBox(width: 8),
@@ -304,20 +304,17 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      height: 160,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(12),
+                    Flexible(
+                      flex: 6,
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius:
+                              const BorderRadius.vertical(top: Radius.circular(12)),
                         ),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.image,
-                          size: 50,
-                          color: Colors.grey[400],
+                        child: const Center(
+                          child: Icon(Icons.image, size: 40, color: Colors.grey),
                         ),
                       ),
                     ),
@@ -336,7 +333,6 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
                                 fontSize: 13,
                               ),
                             ),
-                            const SizedBox(height: 8),
                             Text(
                               produk['harga']!,
                               style: const TextStyle(

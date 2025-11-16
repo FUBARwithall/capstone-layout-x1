@@ -11,7 +11,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
   String? uploadedImagePath;
   bool showResult = false;
 
-  // 🧠 Data dummy hasil deteksi
+  // 🧠 dummy hasil deteksi
   final Map<String, dynamic> detectionResult = {
     'penyakit': 'Cacar (Chickenpox)',
     'deskripsi':
@@ -31,7 +31,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
     ],
   };
 
-  // 💊 Produk yang relevan dengan penyakit CACAR
+  // 💊 dummy produk
   final List<Map<String, String>> rekomendasiProduk = [
     {'nama': 'Sanmol Paracetamol 500mg Tablet', 'harga': 'Rp25.000'},
     {'nama': 'Loratadine Sanbe 10mg Tablet', 'harga': 'Rp30.000'},
@@ -43,7 +43,6 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF0066CC),
@@ -62,7 +61,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
               bool isWide = constraints.maxWidth > 800;
               return Column(
                 children: [
-                  // 📷 Layout responsif (horizontal untuk desktop, vertikal untuk HP)
+                  // layout responsif (horizontal untuk desktop, vertikal untuk HP)
                   isWide
                       ? Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,7 +169,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Judul dan tombol Pantau Kulit
+          // button pantau kulit
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -224,7 +223,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
           ),
           const SizedBox(height: 20),
 
-          // Produk (responsif grid)
+          // card produk 
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -254,7 +253,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Flexible(
-                      flex: 2,
+                      flex: 6,
                       child: Container(
                         width: double.infinity,
                         decoration: BoxDecoration(
@@ -281,7 +280,6 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 13),
                             ),
-                            const Spacer(),
                             Text(
                               produk['harga']!,
                               style: const TextStyle(
@@ -300,7 +298,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
           ),
           const SizedBox(height: 20),
 
-          // Disclaimer
+          // disclaimer
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(

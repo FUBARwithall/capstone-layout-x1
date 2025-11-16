@@ -161,7 +161,7 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Colors.teal,
+                          color: Color(0xFF0066CC),
                         ),
                       ),
                       const Text('Baik'),

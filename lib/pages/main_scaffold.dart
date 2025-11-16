@@ -3,6 +3,7 @@ import 'package:layout_x1/pages/landing_page_body.dart';
 import 'package:layout_x1/pages/profilpage.dart';
 import 'package:layout_x1/pages/pantaupage.dart';
 import 'package:layout_x1/pages/pengaturan.dart';
+import 'package:layout_x1/pages/reminder.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
@@ -48,7 +49,7 @@ class _MainScaffoldState extends State<MainScaffold> {
         children: [
           LandingPageBody(),
           PantauKulitPage(),
-          ProfilPage(),
+          ReminderSkincare(),
           Pengaturan(),
         ],
       ),
@@ -74,7 +75,7 @@ class _MainScaffoldState extends State<MainScaffold> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
           BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Pantau Kulit'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'GlowMate'),
           BottomNavigationBarItem(
               icon: Icon(Icons.settings), label: 'Pengaturan'),
         ],
