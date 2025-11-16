@@ -53,9 +53,10 @@ class _ReminderSkincareState extends State<ReminderSkincare> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pengingat Skincare Harian'),
+        title: Text('Pengingat Skincare Harian (GlowMate)'),
         backgroundColor: const Color(0xFF0066CC),
         foregroundColor: Colors.white,
+        automaticallyImplyLeading: false,
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),

@@ -97,6 +97,7 @@ class _PengaturanState extends State<Pengaturan> {
             fontSize: 20,
           ),
         ),
+          automaticallyImplyLeading: false,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
