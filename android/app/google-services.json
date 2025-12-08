@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "139914337046",
+    "project_id": "capstone-672aa",
+    "storage_bucket": "capstone-672aa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:139914337046:android:b5ddfa2372ad7450294e37",
+        "android_client_info": {
+          "package_name": "com.example.layout_x1"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "139914337046-kbpdlpp3s9t8op9g2gdelifedic77adl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvg-AOK_UaGj4mLDwyLIxDNgy8t-UzEp8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "139914337046-kbpdlpp3s9t8op9g2gdelifedic77adl.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "139914337046-jigruso0afi71f43mjluak9dgkvfps2u.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.layoutX1"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

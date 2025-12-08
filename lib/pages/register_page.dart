@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'api_service.dart'; // Import API service
 import 'user_preferences.dart'; // Import user preferences
+import 'package:google_sign_in/google_sign_in.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -20,6 +21,64 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
+
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+
+  Future<void> _handleGoogleSignIn() async {
+    print("GOOGLE SIGN-IN STARTED");
+
+    setState(() => _isLoading = true);
+
+    try {
+      final user = await _googleSignIn.signIn();
+
+      if (user == null) {
+        print("GOOGLE SIGN-IN CANCELLED");
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      print("GOOGLE SIGN-IN SUCCESS: ${user.email}");
+
+      // Save user data to SharedPreferences
+      await UserPreferences.saveUser(
+        id: int.parse(user.id),
+        name: user.displayName ?? '',
+        email: user.email,
+      );
+
+      setState(() => _isLoading = false);
+
+      if (mounted) {
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Berhasil masuk dengan Google'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navigate to homepage
+        Navigator.pushNamed(context, '/homepage');
+      }
+    } catch (e) {
+      print("GOOGLE SIGN-IN ERROR: $e");
+
+      setState(() => _isLoading = false);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Terjadi kesalahan saat masuk: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+
+    print("GOOGLE SIGN-IN FINISHED");
+  }
+
 
   @override
   void dispose() {
@@ -351,13 +410,13 @@ class _RegisterPageState extends State<RegisterPage> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: ElevatedButton.icon(
-                                  onPressed: () {},
+                                  onPressed: _handleGoogleSignIn,
                                   icon: const Icon(
                                     Icons.wechat,
                                     color: Color(0xFF09B83E),
                                   ),
                                   label: const Text(
-                                    "WeChat",
+                                    "Google",
                                     style: TextStyle(
                                       color: Colors.black,
                                       fontWeight: FontWeight.w500,
