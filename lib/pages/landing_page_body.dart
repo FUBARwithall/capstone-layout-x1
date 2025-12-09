@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:layout_x1/pages/articlepage.dart';
+import 'package:layout_x1/pages/articles/articlepage.dart';
 import 'package:layout_x1/pages/productspage.dart';
+import 'package:layout_x1/pages/articles/articledetailpage.dart';
 import 'user_preferences.dart';
 
 class LandingPageBody extends StatefulWidget {
@@ -20,7 +21,7 @@ class _LandingPageBodyState extends State<LandingPageBody> {
   void initState() {
     super.initState();
     _loadArticles();
-    _loadProducts(); // Tambahan: load data produk
+    _loadProducts();
     _loadUserName();
   }
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'api_service.dart'; // Import API service
-import 'user_preferences.dart'; // Import user preferences
+import '../services/api_service.dart';
+import 'user_preferences.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginPage extends StatefulWidget {
@@ -40,27 +40,52 @@ class _LoginPageState extends State<LoginPage> {
 
       print("GOOGLE SIGN-IN SUCCESS: ${user.email}");
 
-      // Save user data to SharedPreferences
-      await UserPreferences.saveUser(
-        id: int.parse(user.id),
+      // Call API to register/login Google user
+      final result = await ApiService.googleSignIn(
         name: user.displayName ?? user.email.split('@')[0],
         email: user.email,
+        googleId: user.id,
       );
 
-      setState(() => _isLoading = false);
+      if (result['success']) {
+        // Get the user data from API response
+        final userData = result['data'];
 
-      if (mounted) {
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Berhasil masuk dengan Google'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
+        // Save user data to SharedPreferences
+        await UserPreferences.saveUser(
+          id: userData['id'],
+          name: userData['name'],
+          email: userData['email'],
         );
 
-        // Navigate to homepage
-        Navigator.pushReplacementNamed(context, '/homepage');
+        print("User saved to database: ${userData['name']} (${userData['email']})");
+
+        setState(() => _isLoading = false);
+
+        if (mounted) {
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Berhasil masuk dengan Google'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+
+          // Navigate to homepage
+          Navigator.pushReplacementNamed(context, '/homepage');
+        }
+      } else {
+        setState(() => _isLoading = false);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? 'Gagal masuk dengan Google'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } catch (e) {
       print("GOOGLE SIGN-IN ERROR: $e");

@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 class ApiService {
   // Ganti dengan IP komputer kamu kalau testing di device fisik
   // Kalau di emulator, gunakan 10.0.2.2
-  static const String baseUrl = 'http://192.168.56.1:5000/api';
+  static const String baseUrl = 'http://192.168.100.1:5000/api';
 
   // Untuk device fisik, gunakan IP lokal komputer kamu
   // static const String baseUrl = 'http://192.168.1.xxx:5000/api';
@@ -48,6 +48,34 @@ class ApiService {
 
       return {
         'success': response.statusCode == 200,
+        'message': data['message'],
+        'data': data['data'],
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Gagal terhubung ke server: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> googleSignIn({
+    required String name,
+    required String email,
+    required String googleId,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/google-signin'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'google_id': googleId,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200 || response.statusCode == 201,
         'message': data['message'],
         'data': data['data'],
       };
