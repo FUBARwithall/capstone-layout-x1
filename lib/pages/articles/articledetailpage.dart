@@ -12,76 +12,68 @@ class ArticleDetailPage extends StatelessWidget {
         backgroundColor: Color(0xFF0066CC),
         foregroundColor: Colors.white,
         elevation: 0,
+        title: Text(
+          article['title'] ?? 'Judul Artikel',
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header dengan judul
-            Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFF0066CC), Color(0xFF004C99)],
+            // Header dengan metadata
+            if (article['date'] != null || article['views'] != null)
+              Container(
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFF0066CC), Color(0xFF004C99)],
+                  ),
+                ),
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    if (article['date'] != null) ...[
+                      const Icon(
+                        Icons.access_time,
+                        size: 16,
+                        color: Colors.white70,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        article['date'],
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                    if (article['date'] != null && article['views'] != null)
+                      const SizedBox(width: 16),
+                    if (article['views'] != null) ...[
+                      const Icon(
+                        Icons.visibility,
+                        size: 16,
+                        color: Colors.white70,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        article['views'],
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    article['title'] ?? 'Judul Artikel',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      height: 1.3,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  if (article['date'] != null || article['views'] != null)
-                    Row(
-                      children: [
-                        if (article['date'] != null) ...[
-                          const Icon(
-                            Icons.access_time,
-                            size: 16,
-                            color: Colors.white70,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            article['date'],
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                        if (article['date'] != null && article['views'] != null)
-                          const SizedBox(width: 16),
-                        if (article['views'] != null) ...[
-                          const Icon(
-                            Icons.visibility,
-                            size: 16,
-                            color: Colors.white70,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            article['views'],
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                ],
-              ),
-            ),
 
             // Gambar dummy
             Container(
@@ -111,7 +103,8 @@ class ArticleDetailPage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               child: Text(
-                article['description'] ?? 'Deskripsi tidak tersedia',
+                (article['description'] ?? 'Deskripsi tidak tersedia')
+                    .replaceAll(r'\n', '\n\n'),
                 style: const TextStyle(
                   fontSize: 16,
                   height: 1.6,

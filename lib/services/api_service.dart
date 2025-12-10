@@ -84,6 +84,111 @@ class ApiService {
     }
   }
 
+  // ---------------- Articles API ----------------
+  static Future<Map<String, dynamic>> getArticles() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/articles'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'] ?? 'Success',
+        'data': data['data'],
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Gagal terhubung ke server: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getArticle(int articleId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/articles/$articleId'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'] ?? 'Success',
+        'data': data['data'],
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Gagal terhubung ke server: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> createArticle({
+    required String title,
+    required String description,
+    String? image,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/articles'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'title': title, 'description': description, 'image': image}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 201,
+        'message': data['message'],
+        'data': data['data'],
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Gagal terhubung ke server: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateArticle({
+    required int id,
+    required String title,
+    required String description,
+    String? image,
+  }) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/articles/$id'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'title': title, 'description': description, 'image': image}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'],
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Gagal terhubung ke server: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> deleteArticle(int id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/articles/$id'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'],
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Gagal terhubung ke server: $e'};
+    }
+  }
+
   static Future<Map<String, dynamic>> getUser(int userId) async {
     try {
       final response = await http.get(

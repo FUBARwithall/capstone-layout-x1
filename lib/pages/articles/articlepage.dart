@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:layout_x1/pages/articles/articledetailpage.dart';
+import '../../services/api_service.dart';
 
 class ArticlesPageBody extends StatefulWidget {
   @override
@@ -20,16 +21,28 @@ class _ArticlesPageBodyState extends State<ArticlesPageBody> {
 
   Future<void> _loadArticles() async {
     try {
-      final jsonString = await rootBundle.loadString(
-        'assets/data/articles.json',
-      );
+      final result = await ApiService.getArticles();
+      if (result['success']) {
+        setState(() {
+          _articles = result['data'] ?? [];
+          _isLoading = false;
+        });
+      } else {
+        final jsonString = await rootBundle.loadString('assets/data/articles.json');
+        final data = json.decode(jsonString);
+        setState(() {
+          _articles = data;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      // fallback
+      final jsonString = await rootBundle.loadString('assets/data/articles.json');
       final data = json.decode(jsonString);
       setState(() {
         _articles = data;
         _isLoading = false;
       });
-    } catch (_) {
-      setState(() => _isLoading = false);
     }
   }
 

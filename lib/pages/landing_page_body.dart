@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:layout_x1/pages/articles/articlepage.dart';
+import '../services/api_service.dart';
 import 'package:layout_x1/pages/productspage.dart';
 import 'package:layout_x1/pages/articles/articledetailpage.dart';
 import 'user_preferences.dart';
@@ -49,11 +50,28 @@ class _LandingPageBodyState extends State<LandingPageBody> {
   }
 
   Future<void> _loadArticles() async {
-    final jsonString = await rootBundle.loadString('assets/data/articles.json');
-    final data = json.decode(jsonString);
-    setState(() {
-      _articles = data;
-    });
+    try {
+      final result = await ApiService.getArticles();
+      if (result['success']) {
+        setState(() {
+          _articles = result['data'] ?? [];
+        });
+      } else {
+        // fallback to local JSON if API fails
+        final jsonString = await rootBundle.loadString('assets/data/articles.json');
+        final data = json.decode(jsonString);
+        setState(() {
+          _articles = data;
+        });
+      }
+    } catch (e) {
+      // If anything goes wrong, fallback to bundled JSON
+      final jsonString = await rootBundle.loadString('assets/data/articles.json');
+      final data = json.decode(jsonString);
+      setState(() {
+        _articles = data;
+      });
+    }
   }
 
   Future<void> _loadProducts() async {
