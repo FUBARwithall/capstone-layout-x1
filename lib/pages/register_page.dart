@@ -402,46 +402,14 @@ class _RegisterPageState extends State<RegisterPage> {
                           const SizedBox(height: 16),
 
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Expanded(
                                 child: ElevatedButton.icon(
-                                  onPressed: () {},
-                                  icon: const Icon(
-                                    Icons.facebook,
-                                    color: Color(0xFF1877F2),
-                                  ),
-                                  label: const Text(
-                                    "Facebook",
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.white,
-                                    minimumSize: Size(double.infinity, 56),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 14,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                      side: const BorderSide(
-                                        color: Colors.black,
-                                        width: 1,
-                                      ),
-                                    ),
-                                    elevation: 0,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: ElevatedButton.icon(
                                   onPressed: _handleGoogleSignIn,
-                                  icon: const Icon(
-                                    Icons.wechat,
-                                    color: Color(0xFF09B83E),
+                                  icon: Image.asset(
+                                    'assets/data/images/google.webp',
+                                    width: 24,
+                                    height: 24,
                                   ),
                                   label: const Text(
                                     "Google",

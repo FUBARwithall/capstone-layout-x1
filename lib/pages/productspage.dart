@@ -1,6 +1,5 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:layout_x1/services/api_service.dart';
 
 class ProductsPage extends StatefulWidget {
   const ProductsPage({super.key});
@@ -19,10 +18,38 @@ class _ProductsPageState extends State<ProductsPage> {
   }
 
   Future<void> _loadProducts() async {
-    final jsonString = await rootBundle.loadString('assets/data/products.json');
-    setState(() {
-      _products = json.decode(jsonString);
-    });
+    try {
+      final result = await ApiService.getProducts();
+      if (result['success']) {
+        setState(() {
+          _products = result['data'] ?? [];
+        });
+      } else {
+        setState(() {
+          _products = [];
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? 'Gagal memuat produk'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _products = [];
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Terjadi kesalahan: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override

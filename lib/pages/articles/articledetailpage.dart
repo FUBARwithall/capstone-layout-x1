@@ -75,29 +75,61 @@ class ArticleDetailPage extends StatelessWidget {
                 ),
               ),
 
-            // Gambar dummy
-            Container(
-              width: double.infinity,
-              height: 250,
-              color: Colors.grey[300],
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.article_outlined,
-                      size: 80,
-                      color: Colors.grey[500],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Gambar Artikel',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                    ),
-                  ],
+            // Gambar artikel
+            if (article['image'] != null && article['image'].toString().isNotEmpty)
+              Container(
+                width: double.infinity,
+                height: 400,
+                child: Image.network(
+                  'http://localhost:5000/uploads/${article['image']}',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey[300],
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.article_outlined,
+                              size: 80,
+                              color: Colors.grey[500],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Gambar Artikel',
+                              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              )
+            else
+              Container(
+                width: double.infinity,
+                height: 250,
+                color: Colors.grey[300],
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.article_outlined,
+                        size: 80,
+                        color: Colors.grey[500],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Gambar Artikel',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
             // Konten artikel
             Container(

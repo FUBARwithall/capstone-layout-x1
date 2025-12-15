@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:layout_x1/pages/articles/articledetailpage.dart';
 import '../../services/api_service.dart';
 
@@ -28,21 +26,32 @@ class _ArticlesPageBodyState extends State<ArticlesPageBody> {
           _isLoading = false;
         });
       } else {
-        final jsonString = await rootBundle.loadString('assets/data/articles.json');
-        final data = json.decode(jsonString);
         setState(() {
-          _articles = data;
+          _articles = [];
           _isLoading = false;
         });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? 'Gagal memuat artikel'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
-    } catch (_) {
-      // fallback
-      final jsonString = await rootBundle.loadString('assets/data/articles.json');
-      final data = json.decode(jsonString);
+    } catch (e) {
       setState(() {
-        _articles = data;
+        _articles = [];
         _isLoading = false;
       });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Terjadi kesalahan: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -76,10 +85,17 @@ class _ArticlesPageBodyState extends State<ArticlesPageBody> {
                 return Card(
                   margin: EdgeInsets.only(bottom: 16),
                   child: ListTile(
-                    leading: Text(
-                      article['image'] ?? '📄',
-                      style: const TextStyle(fontSize: 28),
-                    ),
+                    leading: article['image'] != null && article['image'].toString().isNotEmpty
+                      ? Image.network(
+                          'http://localhost:5000/uploads/${article['image']}',
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(Icons.article, size: 50, color: Colors.grey);
+                          },
+                        )
+                      : Icon(Icons.article, size: 50, color: Colors.grey),
                     title: Text(article['title'] ?? ''),
                     subtitle: Text(
                       article['description'] ?? '',
