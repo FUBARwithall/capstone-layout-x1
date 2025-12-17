@@ -3,6 +3,10 @@ import 'package:layout_x1/pages/articles/articledetailpage.dart';
 import '../../services/api_service.dart';
 
 class ArticlesPageBody extends StatefulWidget {
+  final int userId;
+
+  const ArticlesPageBody({Key? key, required this.userId}) : super(key: key);
+
   @override
   State<ArticlesPageBody> createState() => _ArticlesPageBodyState();
 }
@@ -58,7 +62,12 @@ class _ArticlesPageBodyState extends State<ArticlesPageBody> {
   void _showArticleDetail(Map<String, dynamic> article) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => ArticleDetailPage(article: article)),
+      MaterialPageRoute(
+        builder: (_) => ArticleDetailPage(
+          article: article,
+          userId: widget.userId, // ✅ AMAN
+        ),
+      ),
     );
   }
 
@@ -85,17 +94,23 @@ class _ArticlesPageBodyState extends State<ArticlesPageBody> {
                 return Card(
                   margin: EdgeInsets.only(bottom: 16),
                   child: ListTile(
-                    leading: article['image'] != null && article['image'].toString().isNotEmpty
-                      ? Image.network(
-                          'http://localhost:5000/uploads/${article['image']}',
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(Icons.article, size: 50, color: Colors.grey);
-                          },
-                        )
-                      : Icon(Icons.article, size: 50, color: Colors.grey),
+                    leading:
+                        article['image'] != null &&
+                            article['image'].toString().isNotEmpty
+                        ? Image.network(
+                            'http://localhost:5000/uploads/${article['image']}',
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.article,
+                                size: 50,
+                                color: Colors.grey,
+                              );
+                            },
+                          )
+                        : Icon(Icons.article, size: 50, color: Colors.grey),
                     title: Text(article['title'] ?? ''),
                     subtitle: Text(
                       article['description'] ?? '',

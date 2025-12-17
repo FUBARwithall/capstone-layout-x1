@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:layout_x1/pages/articles/articlepage.dart';
 import 'package:layout_x1/services/api_service.dart';
-import 'package:layout_x1/pages/productspage.dart';
+import 'package:layout_x1/pages/products/productspage.dart';
 import 'package:layout_x1/pages/articles/articledetailpage.dart';
+import 'package:layout_x1/pages/products/productdetailpage.dart';
 import 'user_preferences.dart';
 
 class LandingPageBody extends StatefulWidget {
@@ -15,6 +16,8 @@ class _LandingPageBodyState extends State<LandingPageBody> {
   List<dynamic> _products = [];
   String _userName = 'Beranda';
   bool _isLoadingUser = true;
+
+  int? _userId;
 
   @override
   void initState() {
@@ -30,6 +33,7 @@ class _LandingPageBodyState extends State<LandingPageBody> {
 
       if (userData != null) {
         setState(() {
+          _userId = userData['id'];
           _userName = userData['name'];
           _isLoadingUser = false;
         });
@@ -118,16 +122,40 @@ class _LandingPageBodyState extends State<LandingPageBody> {
   }
 
   void _navigateToArticles() {
+    if (_userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Silakan login terlebih dahulu'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => ArticlesPageBody()),
+      MaterialPageRoute(builder: (_) => ArticlesPageBody(userId: _userId!)),
     );
   }
 
   void _navigateToProducts() {
+    if (_userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Silakan login terlebih dahulu'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const ProductsPage()),
+      MaterialPageRoute(
+        builder: (_) => ProductsPage(
+          userId: _userId!, // ✅ KIRIM USER ID
+        ),
+      ),
     );
   }
 
@@ -280,11 +308,8 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
                   TextButton(
-                    onPressed: _navigateToArticles,
-                    child: const Text(
-                      'Lihat Semua',
-                      style: TextStyle(color: Color(0xFF0066CC)),
-                    ),
+                    onPressed: _userId == null ? null : _navigateToArticles,
+                    child: const Text('Lihat Semua'),
                   ),
                 ],
               ),
@@ -297,13 +322,30 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                         return Card(
                           margin: const EdgeInsets.only(bottom: 12),
                           child: InkWell(
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    ArticleDetailPage(article: article),
-                              ),
-                            ),
+                            onTap: () {
+                              if (_userId == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Silakan login terlebih dahulu',
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                                return;
+                              }
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ArticleDetailPage(
+                                    article: article,
+                                    userId: _userId!,
+                                  ),
+                                ),
+                              );
+                            },
+
                             child: Padding(
                               padding: const EdgeInsets.all(12),
                               child: Row(
@@ -382,6 +424,8 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                       child: Row(
                         children: _products.take(5).map((p) {
                           return _buildProductCard(
+                            context,
+                            p['id'],
                             p['image'],
                             p['merek'] ?? '',
                             'Rp ${p['harga']}',
@@ -396,65 +440,101 @@ class _LandingPageBodyState extends State<LandingPageBody> {
     );
   }
 
-  Widget _buildProductCard(String? image, String title, String price) {
-    return Container(
-      width: 150,
-      margin: const EdgeInsets.only(right: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
+  Widget _buildProductCard(
+    BuildContext context,
+    int productId,
+    String? image,
+    String title,
+    String price,
+  ) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Gambar produk
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(12),
-            ),
-            child: Image.network(
-              'http://localhost:5000/uploads/${image ?? ''}',
-              width: 150,
-              height: 120,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                width: 150,
-                height: 120,
-                color: Colors.grey[300],
-                child: const Center(
-                  child: Text('🧴', style: TextStyle(fontSize: 40)),
-                ),
+        onTap: () {
+          if (_userId == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Silakan login terlebih dahulu'),
+                backgroundColor: Colors.red,
               ),
+            );
+            return;
+          }
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  ProductDetailPage(productId: productId, userId: _userId!),
             ),
+          );
+        },
+
+        child: Container(
+          width: 150,
+          margin: const EdgeInsets.only(right: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 5,
+              ),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(12),
+                ),
+                child: Image.network(
+                  'http://localhost:5000/uploads/${image ?? ''}',
+                  width: 150,
+                  height: 120,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    width: 150,
+                    height: 120,
+                    color: Colors.grey[300],
+                    child: const Center(
+                      child: Text('🧴', style: TextStyle(fontSize: 40)),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  price,
-                  style: TextStyle(color: Colors.redAccent, fontSize: 12),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      price,
+                      style: const TextStyle(
+                        color: Colors.redAccent,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
+
 
 class ApiService {
   // Ganti dengan IP komputer kamu kalau testing di device fisik
   // Kalau di emulator, gunakan 10.0.2.2
-  static const String baseUrl = 'http://192.168.100.1:5000/api';
+  static const String baseUrl = 'http://192.168.56.1:5000/api';
 
   // Untuk device fisik, gunakan IP lokal komputer kamu
   // static const String baseUrl = 'http://192.168.1.xxx:5000/api';
@@ -193,6 +195,32 @@ class ApiService {
       return {'success': false, 'message': 'Gagal terhubung ke server: $e'};
     }
   }
+
+
+//============================================================
+static Future<Map<String, dynamic>> getFavoriteArticles(int userId) async {
+  final res = await http.get(
+    Uri.parse('http://localhost:5000/api/articles/favorites?user_id=$userId'),
+  );
+
+  debugPrint('Status: ${res.statusCode}');
+  debugPrint('Body: ${res.body}');
+
+  return jsonDecode(res.body);
+}
+
+static Future<Map<String, dynamic>> getFavoriteProducts(int userId) async {
+  final res = await http.get(
+    Uri.parse('http://localhost:5000/api/products/favorites?user_id=$userId'),
+  );
+
+  debugPrint('PRODUCT STATUS: ${res.statusCode}');
+  debugPrint('PRODUCT BODY: ${res.body}');
+
+  return jsonDecode(res.body);
+}
+
+
 
   // ---------------- Products API ----------------
   static Future<Map<String, dynamic>> getProducts() async {

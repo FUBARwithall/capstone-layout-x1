@@ -207,7 +207,8 @@ class _PengaturanState extends State<Pengaturan> {
                   leading: const Icon(Icons.favorite_border),
                   title: const Text("Favorites"),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {},
+                  onTap: () =>
+                      Navigator.pushNamed(context, '/favorite'),
                 ),
                 const Divider(),
 
