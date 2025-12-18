@@ -11,7 +11,6 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
   String? uploadedImagePath;
   bool showResult = false;
 
-  // 🧠 dummy hasil deteksi
   final Map<String, dynamic> detectionResult = {
     'penyakit': 'Cacar (Chickenpox)',
     'deskripsi':
@@ -31,7 +30,6 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
     ],
   };
 
-  // 💊 dummy produk
   final List<Map<String, String>> rekomendasiProduk = [
     {'nama': 'Sanmol Paracetamol 500mg Tablet', 'harga': 'Rp25.000'},
     {'nama': 'Loratadine Sanbe 10mg Tablet', 'harga': 'Rp30.000'},
@@ -61,7 +59,6 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
               bool isWide = constraints.maxWidth > 800;
               return Column(
                 children: [
-                  // layout responsif (horizontal untuk desktop, vertikal untuk HP)
                   isWide
                       ? Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,7 +166,6 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // button pantau kulit
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -223,7 +219,6 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
           ),
           const SizedBox(height: 20),
 
-          // card produk 
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -298,7 +293,6 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
           ),
           const SizedBox(height: 20),
 
-          // disclaimer
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(

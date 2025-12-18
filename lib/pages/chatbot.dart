@@ -10,7 +10,6 @@ class ChatbotPage extends StatefulWidget {
 class _ChatbotPageState extends State<ChatbotPage> {
   final TextEditingController _controller = TextEditingController();
 
-  // 🗨️ 4 pesan dummy (2 user + 2 chatbot)
   final List<Map<String, dynamic>> messages = [
     {
       'text': 'Hai Glowie! Kulitku akhir-akhir ini terasa kering banget 😣',
@@ -35,7 +34,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF8E7), // warna lembut
+      backgroundColor: const Color(0xFFFFF8E7),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0066CC),
         title: const Text('Glowie 💬'),
@@ -43,10 +42,8 @@ class _ChatbotPageState extends State<ChatbotPage> {
         elevation: 2,
       ),
 
-      // 🔹 Body utama
       body: Column(
         children: [
-          // Daftar chat
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
@@ -66,8 +63,8 @@ class _ChatbotPageState extends State<ChatbotPage> {
                     ),
                     decoration: BoxDecoration(
                       color: isUser
-                          ? const Color(0xFFB3E5FC) // biru lembut (user)
-                          : const Color(0xFFFFE0B2), // peach lembut (bot)
+                          ? const Color(0xFFB3E5FC)
+                          : const Color(0xFFFFE0B2),
                       borderRadius: BorderRadius.only(
                         topLeft: const Radius.circular(16),
                         topRight: const Radius.circular(16),
@@ -89,7 +86,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
             ),
           ),
 
-          // 🔹 Input bar (tampilan saja)
+
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             color: Colors.white,

@@ -12,7 +12,6 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
   String? uploadedImagePath;
   bool showResult = false;
 
-  // 🧠 dummy hasil deteksi
   final Map<String, dynamic> detectionResult = {
     'penyakit': 'Wajah Berminyak (Oily Skin)',
     'deskripsi':
@@ -32,7 +31,6 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
     ],
   };
 
-  // 💊 dummy produk
   final List<Map<String, String>> rekomendasiProduk = [
     {'nama': 'Wardah Acnederm Pure Foaming Cleanser', 'harga': 'Rp38.000'},
     {'nama': 'Emina Ms. Pimple Acne Solution Toner', 'harga': 'Rp32.000'},
@@ -161,7 +159,6 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
     );
   }
 
-  // hasil deteksi & produk
   Widget _buildDetectionAndProductCombined(BoxConstraints constraints) {
     int crossAxisCount = 3;
     if (constraints.maxWidth < 900) crossAxisCount = 2;
@@ -200,7 +197,7 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF2C2C2C),
                   ),
-                  overflow: TextOverflow.ellipsis, // agar teks tidak overflow
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(width: 8),

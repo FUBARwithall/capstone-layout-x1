@@ -27,7 +27,6 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = true);
 
     try {
-      // Sign out first to clear any cached state
       await _googleSignIn.signOut();
 
       final user = await _googleSignIn.signIn();
@@ -40,7 +39,6 @@ class _LoginPageState extends State<LoginPage> {
 
       print("GOOGLE SIGN-IN SUCCESS: ${user.email}");
 
-      // Call API to register/login Google user
       final result = await ApiService.googleSignIn(
         name: user.displayName ?? user.email.split('@')[0],
         email: user.email,
@@ -48,10 +46,8 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (result['success']) {
-        // Get the user data from API response
         final userData = result['data'];
 
-        // Save user data to SharedPreferences
         await UserPreferences.saveUser(
           id: userData['id'],
           name: userData['name'],
@@ -63,7 +59,6 @@ class _LoginPageState extends State<LoginPage> {
         setState(() => _isLoading = false);
 
         if (mounted) {
-          // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Berhasil masuk dengan Google'),
@@ -72,7 +67,6 @@ class _LoginPageState extends State<LoginPage> {
             ),
           );
 
-          // Navigate to homepage
           Navigator.pushReplacementNamed(context, '/homepage');
         }
       } else {
@@ -93,7 +87,6 @@ class _LoginPageState extends State<LoginPage> {
       setState(() => _isLoading = false);
 
       if (mounted) {
-        // Show user-friendly error message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -121,7 +114,6 @@ class _LoginPageState extends State<LoginPage> {
       setState(() => _isLoading = true);
 
       try {
-        // Panggil API login
         final result = await ApiService.login(
           email: _emailController.text.trim(),
           password: _passwordController.text,
@@ -131,17 +123,14 @@ class _LoginPageState extends State<LoginPage> {
 
         if (mounted) {
           if (result['success']) {
-            // Login berhasil
             final userData = result['data'];
 
-            // Simpan data user ke SharedPreferences
             await UserPreferences.saveUser(
               id: userData['id'],
               name: userData['name'],
               email: userData['email'],
             );
 
-            // Debug: Cek data tersimpan
             print('User logged in: ${userData['name']} (${userData['email']})');
 
             ScaffoldMessenger.of(context).showSnackBar(
@@ -151,10 +140,8 @@ class _LoginPageState extends State<LoginPage> {
               ),
             );
 
-            // Navigate ke homepage
             Navigator.pushReplacementNamed(context, '/homepage');
           } else {
-            // Login gagal
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(result['message']),
@@ -379,7 +366,6 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           const SizedBox(height: 16),
 
-                          // Don't have account
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [

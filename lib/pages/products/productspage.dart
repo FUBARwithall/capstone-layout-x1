@@ -57,7 +57,6 @@ class _ProductsPageState extends State<ProductsPage> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // Hitung jumlah kolom dinamis (misalnya 2 di HP, 3 di tablet)
     int crossAxisCount = 2;
     if (screenWidth > 600) crossAxisCount = 3;
     if (screenWidth > 900) crossAxisCount = 4;
@@ -144,7 +143,6 @@ class _ProductsPageState extends State<ProductsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Gambar produk
           Expanded(
             flex: 10,
             child: Container(
@@ -164,7 +162,6 @@ class _ProductsPageState extends State<ProductsPage> {
             ),
           ),
 
-          // Info produk
           Expanded(
             flex: 4,
             child: Padding(

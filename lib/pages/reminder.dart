@@ -35,13 +35,11 @@ class _ReminderSkincareState extends State<ReminderSkincare> {
     },
   ];
 
-  // 🎯 State untuk menandai apakah task sudah dicentang
   late List<List<bool>> taskStatus;
 
   @override
   void initState() {
     super.initState();
-    // Inisialisasi status semua task = false (belum dicentang)
     taskStatus = skincareReminders
         .map((reminder) => List<bool>.filled(reminder['tasks'].length, false))
         .toList();

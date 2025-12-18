@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter_html/flutter_html.dart';
 
 class ArticleDetailPage extends StatefulWidget {
   final Map<String, dynamic> article;
@@ -24,11 +25,10 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
   @override
   void initState() {
     super.initState();
-    userId = widget.userId; // ✅ ambil dari login
+    userId = widget.userId;
     fetchFavoriteStatus();
   }
 
-  // 🔍 CEK STATUS FAVORIT
   Future<void> fetchFavoriteStatus() async {
     final articleId = widget.article['id'];
     final url = Uri.parse(
@@ -55,7 +55,6 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
 
     try {
       if (isLoved) {
-        // ❌ UNFAVORITE
         await http.delete(
           url,
           headers: {'Content-Type': 'application/json'},
@@ -67,7 +66,6 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
           _favoriteChanged = true; 
         });
       } else {
-        // ❤️ FAVORITE
         await http.post(
           url,
           headers: {'Content-Type': 'application/json'},
@@ -93,7 +91,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
           'article_id': widget.article['id'],
           'isLoved': isLoved,
         });
-        return false; // ⛔ hentikan pop default
+        return false;
       },
       child: Scaffold(
         appBar: AppBar(
@@ -228,11 +226,19 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
 
               Container(
                 padding: const EdgeInsets.all(20),
-                child: Text(
-                  (widget.article['description'] ?? 'Deskripsi tidak tersedia')
-                      .replaceAll(r'\n', '\n\n'),
-                  style: const TextStyle(fontSize: 16, height: 1.6),
-                  textAlign: TextAlign.justify,
+                child: Html(
+                  data:
+                      widget.article['description'] ??
+                      '<p>Deskripsi tidak tersedia</p>',
+                  style: {
+                    "body": Style(
+                      fontSize: FontSize(16),
+                      lineHeight: LineHeight.number(1.6),
+                      textAlign: TextAlign.justify,
+                      margin: Margins.zero,
+                    ),
+                    "p": Style(margin: Margins.only(bottom: 16)),
+                  },
                 ),
               ),
             ],

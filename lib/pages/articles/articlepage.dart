@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:layout_x1/pages/articles/articledetailpage.dart';
+import 'package:layout_x1/utils/html_helper.dart';
 import '../../services/api_service.dart';
 
 class ArticlesPageBody extends StatefulWidget {
@@ -65,7 +66,7 @@ class _ArticlesPageBodyState extends State<ArticlesPageBody> {
       MaterialPageRoute(
         builder: (_) => ArticleDetailPage(
           article: article,
-          userId: widget.userId, // ✅ AMAN
+          userId: widget.userId,
         ),
       ),
     );
@@ -113,8 +114,10 @@ class _ArticlesPageBodyState extends State<ArticlesPageBody> {
                         : Icon(Icons.article, size: 50, color: Colors.grey),
                     title: Text(article['title'] ?? ''),
                     subtitle: Text(
-                      article['description'] ?? '',
-                      maxLines: 2,
+                      getFirstSentence(
+                        htmlToPlainText(article['description'] ?? ''),
+                      ),
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
                     onTap: () => _showArticleDetail(article),

@@ -152,7 +152,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /// ===== IMAGE =====
               if (product!['image'] != null &&
                   product!['image'].toString().isNotEmpty)
                 Image.network(
@@ -170,13 +169,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   ),
                 ),
 
-              /// ===== CONTENT =====
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// Nama Produk
                     Text(
                       product!['nama'],
                       style: const TextStyle(
@@ -187,11 +184,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
                     const SizedBox(height: 10),
 
-                    /// Harga
                     Text(
                       'Rp ${product!['harga']}',
                       style: const TextStyle(
-                        fontSize: 18,
                         color: Colors.green,
                         fontWeight: FontWeight.bold,
                       ),
@@ -199,7 +194,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
                     const SizedBox(height: 12),
 
-                    /// Kategori
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -207,7 +201,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       ),
                       decoration: BoxDecoration(
                         color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         product!['kategori_penyakit'],
@@ -220,11 +214,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
                     const SizedBox(height: 20),
 
-                    /// Deskripsi
                     const Text(
                       'Deskripsi Produk',
                       style: TextStyle(
-                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -232,11 +224,23 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     const SizedBox(height: 8),
 
                     Text(
-                      'Produk ${product!['nama']} dari merek ${product!['merek']} '
-                      'digunakan untuk kategori penyakit ${product!['kategori_penyakit']}.',
-                      style: const TextStyle(fontSize: 16, height: 1.6),
+                      product!['deskripsi'],
                       textAlign: TextAlign.justify,
                     ),
+
+                    const SizedBox(height: 10),
+                    Divider(),
+                    const SizedBox(height: 10),
+
+                    Text('Dosis: ${product!['dosis']}'),
+                    SizedBox(height: 4),
+                    Text('Efek samping: ${product!['efek_samping']}'),
+                    SizedBox(height: 4),
+                    Text('Komposisi: ${product!['komposisi']}'),
+                    SizedBox(height: 4),
+                    Text('Manufaktur: ${product!['manufaktur']}'),
+                    SizedBox(height: 4),
+                    Text('Nomor registrasi: ${product!['nomor_registrasi']}')
                   ],
                 ),
               ),

@@ -4,6 +4,7 @@ import 'package:layout_x1/services/api_service.dart';
 import 'package:layout_x1/pages/products/productspage.dart';
 import 'package:layout_x1/pages/articles/articledetailpage.dart';
 import 'package:layout_x1/pages/products/productdetailpage.dart';
+import 'package:layout_x1/utils/html_helper.dart';
 import 'user_preferences.dart';
 
 class LandingPageBody extends StatefulWidget {
@@ -153,24 +154,10 @@ class _LandingPageBodyState extends State<LandingPageBody> {
       context,
       MaterialPageRoute(
         builder: (_) => ProductsPage(
-          userId: _userId!, // ✅ KIRIM USER ID
+          userId: _userId!,
         ),
       ),
     );
-  }
-
-  // Helper function untuk ambil kalimat pertama dari deskripsi
-  String getFirstSentence(String? text) {
-    if (text == null || text.isEmpty) return '';
-    final sentences = text.split(RegExp(r'[.!?]'));
-    if (sentences.isEmpty) return text;
-    String firstSentence = sentences[0].trim();
-    if (!firstSentence.endsWith('.') &&
-        !firstSentence.endsWith('!') &&
-        !firstSentence.endsWith('?')) {
-      firstSentence += '.';
-    }
-    return firstSentence;
   }
 
   @override
@@ -210,14 +197,12 @@ class _LandingPageBodyState extends State<LandingPageBody> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ==== DETEKSI KULIT ====
               const Text(
                 "Deteksi Kulit",
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
 
-              // === Kartu Deteksi Kulit Wajah ===
               Card(
                 elevation: 3,
                 shape: RoundedRectangleBorder(
@@ -258,7 +243,6 @@ class _LandingPageBodyState extends State<LandingPageBody> {
               ),
               const SizedBox(height: 12),
 
-              // === Kartu Deteksi Kulit Tubuh ===
               Card(
                 elevation: 3,
                 shape: RoundedRectangleBorder(
@@ -299,7 +283,6 @@ class _LandingPageBodyState extends State<LandingPageBody> {
               ),
               const SizedBox(height: 20),
 
-              // ==== ARTIKEL TERKINI ====
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -373,14 +356,19 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                                       children: [
                                         Text(
                                           article['title'] ?? '',
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.titleMedium,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                         ),
                                         const SizedBox(height: 6),
                                         Text(
                                           getFirstSentence(
-                                            article['description'],
+                                            htmlToPlainText(
+                                              article['description'] ?? '',
+                                            ),
                                           ),
                                           maxLines: 3,
                                           overflow: TextOverflow.ellipsis,
@@ -397,7 +385,6 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                     ),
               const SizedBox(height: 20),
 
-              // ==== REKOMENDASI PRODUK ====
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -416,7 +403,6 @@ class _LandingPageBodyState extends State<LandingPageBody> {
               ),
               const SizedBox(height: 12),
 
-              // === Daftar Produk (max 5) ===
               _products.isEmpty
                   ? const Center(child: Text('Belum ada produk'))
                   : SingleChildScrollView(

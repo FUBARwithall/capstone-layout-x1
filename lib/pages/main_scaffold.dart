@@ -10,7 +10,6 @@ class MainScaffold extends StatefulWidget {
   @override
   State<MainScaffold> createState() => _MainScaffoldState();
 
-  // Static method untuk akses dari child widgets
   static _MainScaffoldState? of(BuildContext context) {
     return context.findAncestorStateOfType<_MainScaffoldState>();
   }
