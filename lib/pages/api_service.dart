@@ -4,23 +4,75 @@ import 'package:http/http.dart' as http;
 class ApiService {
   static const String baseUrl = 'http://192.168.56.1:5000/api';
 
+  /// Kirim OTP ke email
+  static Future<Map<String, dynamic>> sendOtp({
+    required String email,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/send-otp'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'] ?? 'Unknown error',
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Gagal terhubung ke server: $e'};
+    }
+  }
+
+  /// Verifikasi OTP
+  static Future<Map<String, dynamic>> verifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/verify-otp'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'otp': otp}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'] ?? 'Unknown error',
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Gagal terhubung ke server: $e'};
+    }
+  }
+
+  /// Register dengan OTP
   static Future<Map<String, dynamic>> register({
     required String name,
     required String email,
     required String password,
+    required String otp,
   }) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/register'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'name': name, 'email': email, 'password': password}),
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'password': password,
+          'otp': otp,
+        }),
       );
 
       final data = jsonDecode(response.body);
 
       return {
         'success': response.statusCode == 201,
-        'message': data['message'],
+        'message': data['message'] ?? 'Unknown error',
         'data': data['data'],
       };
     } catch (e) {
@@ -28,6 +80,7 @@ class ApiService {
     }
   }
 
+  /// Login user
   static Future<Map<String, dynamic>> login({
     required String email,
     required String password,
@@ -43,7 +96,7 @@ class ApiService {
 
       return {
         'success': response.statusCode == 200,
-        'message': data['message'],
+        'message': data['message'] ?? 'Unknown error',
         'data': data['data'],
       };
     } catch (e) {
@@ -51,15 +104,15 @@ class ApiService {
     }
   }
 
-  // Tambahan untuk Google Login
-  static Future<Map<String, dynamic>> googleLogin({
+  /// Google Sign-In (tidak perlu OTP)
+  static Future<Map<String, dynamic>> googleSignIn({
     required String email,
     required String name,
     required String googleId,
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/google-login'),
+        Uri.parse('$baseUrl/google-signin'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
@@ -71,15 +124,16 @@ class ApiService {
       final data = jsonDecode(response.body);
 
       return {
-        'success': response.statusCode == 200,
-        'message': data['message'],
-        'data': data['data'],
+        'success': response.statusCode == 200 || response.statusCode == 201,
+        'message': data['message'] ?? 'Unknown error',
+        'data': data.containsKey('data') ? data['data'] : null,
       };
     } catch (e) {
       return {'success': false, 'message': 'Gagal terhubung ke server: $e'};
     }
   }
 
+  /// Get user detail
   static Future<Map<String, dynamic>> getUser(int userId) async {
     try {
       final response = await http.get(
@@ -99,6 +153,7 @@ class ApiService {
     }
   }
 
+  /// Health check
   static Future<bool> checkHealth() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/health'));

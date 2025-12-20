@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:layout_x1/services/api_service.dart';
+import 'package:layout_x1/pages/products/productdetailpage.dart';
 
 class ProductsPage extends StatefulWidget {
-  const ProductsPage({super.key});
-
+  final int userId;
+  const ProductsPage({Key? key, required this.userId}) : super(key: key);
   @override
   State<ProductsPage> createState() => _ProductsPageState();
 }
@@ -56,7 +57,6 @@ class _ProductsPageState extends State<ProductsPage> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // Hitung jumlah kolom dinamis (misalnya 2 di HP, 3 di tablet)
     int crossAxisCount = 2;
     if (screenWidth > 600) crossAxisCount = 3;
     if (screenWidth > 900) crossAxisCount = 4;
@@ -82,11 +82,37 @@ class _ProductsPageState extends State<ProductsPage> {
                   itemCount: _products.length,
                   itemBuilder: (context, index) {
                     final p = _products[index];
-                    return _buildProductCard(
-                      p['image'],
-                      p['merek'],
-                      p['nama'],
-                      "Rp ${p['harga']}",
+                    return GestureDetector(
+                      onTap: () {
+                        final productId = int.tryParse(p['id'].toString());
+
+                        if (productId == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('ID produk tidak valid'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ProductDetailPage(
+                              productId: productId,
+                              userId: widget.userId,
+                            ),
+                          ),
+                        );
+                      },
+
+                      child: _buildProductCard(
+                        p['image'],
+                        p['merek'],
+                        p['nama'],
+                        "Rp ${p['harga']}",
+                      ),
                     );
                   },
                 );
@@ -96,7 +122,11 @@ class _ProductsPageState extends State<ProductsPage> {
   }
 
   Widget _buildProductCard(
-      String? image, String brand, String name, String price) {
+    String? image,
+    String brand,
+    String name,
+    String price,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -113,15 +143,15 @@ class _ProductsPageState extends State<ProductsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Gambar produk
           Expanded(
             flex: 10,
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
                 color: Colors.grey[200],
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(12)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(12),
+                ),
               ),
               child: Center(
                 child: Text(
@@ -132,7 +162,6 @@ class _ProductsPageState extends State<ProductsPage> {
             ),
           ),
 
-          // Info produk
           Expanded(
             flex: 4,
             child: Padding(
@@ -154,12 +183,9 @@ class _ProductsPageState extends State<ProductsPage> {
                     name,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.black54,
-                    ),
+                    style: const TextStyle(fontSize: 12, color: Colors.black54),
                   ),
-                  SizedBox (height: 10),
+                  SizedBox(height: 10),
                   Text(
                     price,
                     style: const TextStyle(

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'user_preferences.dart'; // Import user preferences
+import 'user_preferences.dart';
 
 class ProfilPage extends StatefulWidget {
   const ProfilPage({super.key});
@@ -9,7 +9,7 @@ class ProfilPage extends StatefulWidget {
 }
 
 class _ProfilPageState extends State<ProfilPage> {
-  String _userName = 'Loading...';
+  String _userName = '';
   String _userEmail = '';
   bool _isLoading = true;
 

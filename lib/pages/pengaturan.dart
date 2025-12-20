@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:layout_x1/pages/login_page.dart';
-import 'user_preferences.dart'; // Import user preferences
+import 'user_preferences.dart';
 
 class Pengaturan extends StatefulWidget {
   const Pengaturan({super.key});
@@ -47,7 +47,6 @@ class _PengaturanState extends State<Pengaturan> {
   }
 
   Future<void> _handleLogout() async {
-    // Tampilkan dialog konfirmasi
     final shouldLogout = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -67,11 +66,9 @@ class _PengaturanState extends State<Pengaturan> {
     );
 
     if (shouldLogout == true) {
-      // Hapus data user dari SharedPreferences
       await UserPreferences.clearUser();
 
       if (mounted) {
-        // Redirect ke login page dan hapus semua route sebelumnya
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const LoginPage()),
@@ -103,7 +100,6 @@ class _PengaturanState extends State<Pengaturan> {
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               children: [
-                // 🔹 Header User Profile
                 Container(
                   decoration: const BoxDecoration(color: Color(0xFF0066CC)),
                   padding: const EdgeInsets.symmetric(
@@ -141,7 +137,6 @@ class _PengaturanState extends State<Pengaturan> {
                   ),
                 ),
 
-                // 🔹 Daftar menu pengaturan
                 ListTile(
                   leading: const Icon(Icons.apps),
                   title: const Text("Tentang Kami"),
@@ -152,12 +147,10 @@ class _PengaturanState extends State<Pengaturan> {
                   leading: const Icon(Icons.language),
                   title: const Text("Bahasa Aplikasi"),
                   trailing: Row(
-                    mainAxisSize: MainAxisSize.min, // agar row menyesuaikan isi
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Tombol Bahasa Indonesia
                       ElevatedButton(
                         onPressed: () {
-                          // Aksi ubah bahasa ke Indonesia
                           print("Bahasa: Indonesia");
                         },
                         style: ElevatedButton.styleFrom(
@@ -173,11 +166,9 @@ class _PengaturanState extends State<Pengaturan> {
                           style: TextStyle(fontSize: 12, color: Colors.white),
                         ),
                       ),
-                      const SizedBox(width: 8), // jarak antar tombol
-                      // Tombol Bahasa Inggris
+                      const SizedBox(width: 8),
                       ElevatedButton(
                         onPressed: () {
-                          // Aksi ubah bahasa ke Inggris
                           print("Bahasa: English");
                         },
                         style: ElevatedButton.styleFrom(
@@ -207,11 +198,11 @@ class _PengaturanState extends State<Pengaturan> {
                   leading: const Icon(Icons.favorite_border),
                   title: const Text("Favorites"),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {},
+                  onTap: () =>
+                      Navigator.pushNamed(context, '/favorite'),
                 ),
                 const Divider(),
 
-                // 🔹 Tombol logout dengan konfirmasi
                 ListTile(
                   leading: const Icon(Icons.logout, color: Colors.red),
                   title: const Text(

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'api_service.dart';
+import '../services/api_service.dart';
 import 'user_preferences.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -20,10 +19,88 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
-  // Google Sign-In instance
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email', 'profile'],
-  );
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+
+  Future<void> _handleGoogleSignIn() async {
+    print("GOOGLE SIGN-IN STARTED");
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _googleSignIn.signOut();
+
+      final user = await _googleSignIn.signIn();
+
+      if (user == null) {
+        print("GOOGLE SIGN-IN CANCELLED");
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      print("GOOGLE SIGN-IN SUCCESS: ${user.email}");
+
+      final result = await ApiService.googleSignIn(
+        name: user.displayName ?? user.email.split('@')[0],
+        email: user.email,
+        googleId: user.id,
+      );
+
+      if (result['success']) {
+        final userData = result['data'];
+
+        await UserPreferences.saveUser(
+          id: userData['id'],
+          name: userData['name'],
+          email: userData['email'],
+        );
+
+        print("User saved to database: ${userData['name']} (${userData['email']})");
+
+        setState(() => _isLoading = false);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Berhasil masuk dengan Google'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+
+          Navigator.pushReplacementNamed(context, '/homepage');
+        }
+      } else {
+        setState(() => _isLoading = false);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? 'Gagal masuk dengan Google'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print("GOOGLE SIGN-IN ERROR: $e");
+
+      setState(() => _isLoading = false);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Maaf, Google Sign-In sedang tidak tersedia. Silakan masuk dengan email.',
+            ),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+
+    print("GOOGLE SIGN-IN FINISHED");
+  }
 
   @override
   void dispose() {
@@ -53,6 +130,8 @@ class _LoginPageState extends State<LoginPage> {
               name: userData['name'],
               email: userData['email'],
             );
+
+            print('User logged in: ${userData['name']} (${userData['email']})');
 
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -87,72 +166,6 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         _autovalidateMode = AutovalidateMode.onUserInteraction;
       });
-    }
-  }
-
-  Future<void> _handleGoogleSignIn() async {
-    setState(() => _isLoading = true);
-
-    try {
-      // Sign out dulu untuk memastikan akun dipilih ulang
-      await _googleSignIn.signOut();
-      
-      // Sign in dengan Google
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-
-      if (googleUser == null) {
-        // User membatalkan login
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      // Kirim data ke backend
-      final result = await ApiService.googleLogin(
-        email: googleUser.email,
-        name: googleUser.displayName ?? 'Google User',
-        googleId: googleUser.id,
-      );
-
-      setState(() => _isLoading = false);
-
-      if (mounted) {
-        if (result['success']) {
-          final userData = result['data'];
-
-          await UserPreferences.saveUser(
-            id: userData['id'],
-            name: userData['name'],
-            email: userData['email'],
-          );
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Login dengan Google berhasil!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-
-          Navigator.pushReplacementNamed(context, '/homepage');
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result['message']),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      setState(() => _isLoading = false);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Google Sign-In gagal: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
     }
   }
 
@@ -275,10 +288,10 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),
                               child: _isLoading
-                                  ? const Row(
+                                  ? Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
-                                      children: [
+                                      children: const [
                                         SizedBox(
                                           width: 20,
                                           height: 20,
@@ -307,50 +320,49 @@ class _LoginPageState extends State<LoginPage> {
                                     ),
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 16),
+
+                          const Text("Atau masuk melalui"),
+                          const SizedBox(height: 16),
 
                           Row(
                             children: [
-                              Expanded(child: Divider(color: Colors.grey[400])),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                child: Text(
-                                  "Atau masuk melalui",
-                                  style: TextStyle(color: Colors.grey[600]),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: _handleGoogleSignIn,
+                                  icon: Image.asset(
+                                    'assets/data/images/google.webp',
+                                    width: 24,
+                                    height: 24,
+                                  ),
+                                  label: const Text(
+                                    "Google",
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    minimumSize: const Size(
+                                      double.infinity,
+                                      56,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      side: const BorderSide(
+                                        color: Colors.black,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    elevation: 0,
+                                  ),
                                 ),
                               ),
-                              Expanded(child: Divider(color: Colors.grey[400])),
                             ],
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Google Sign-In Button
-                          SizedBox(
-                            width: double.infinity,
-                            height: 56,
-                            child: OutlinedButton.icon(
-                              onPressed: _isLoading ? null : _handleGoogleSignIn,
-                              icon: SvgPicture.network(
-                                'https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg',
-                                height: 24,
-                                width: 24,
-                              ),
-                              label: const Text(
-                                "Masuk dengan Google",
-                                style: TextStyle(
-                                  color: Colors.black87,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                side: BorderSide(color: Colors.grey[300]!),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                            ),
                           ),
                           const SizedBox(height: 16),
 

@@ -78,14 +78,12 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
     );
   }
 
-  // Halaman Input Data
   Widget _buildInputPage() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Pilih Tanggal
           Card(
             elevation: 2,
             child: ListTile(
@@ -98,7 +96,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
           ),
           const SizedBox(height: 24),
 
-          // Upload Foto Wajah
           const Text(
             'Foto Wajah',
             style: TextStyle(
@@ -136,7 +133,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
           ),
           const SizedBox(height: 24),
 
-          // Kondisi Kulit Slider
           const Text(
             'Kondisi Kulit',
             style: TextStyle(
@@ -202,7 +198,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
           ),
           const SizedBox(height: 24),
 
-          // Input Makanan
           const Text(
             'Makanan',
             style: TextStyle(
@@ -253,7 +248,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
           ),
           const SizedBox(height: 24),
 
-          // Input Minuman
           const Text(
             'Minuman',
             style: TextStyle(
@@ -304,7 +298,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
           ),
           const SizedBox(height: 24),
 
-          // Input Jam Tidur
           const Text(
             'Jam Tidur',
             style: TextStyle(
@@ -325,8 +318,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
           ),
           const SizedBox(height: 24),
 
-          
-          // Tombol Simpan
           SizedBox(
             width: double.infinity,
             height: 56,
@@ -362,14 +353,12 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
     );
   }
 
-  // Halaman Analisis & Grafik
   Widget _buildAnalysisPage() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           const Text(
             'Analisis Kesehatan Kulit',
             style: TextStyle(
@@ -388,7 +377,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
           ),
           const SizedBox(height: 24),
 
-          // Card Grafik Kondisi Kulit
           Card(
             elevation: 4,
             child: Padding(
@@ -430,7 +418,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
           ),
           const SizedBox(height: 16),
 
-          // Card Grafik Jam Tidur
           Card(
             elevation: 4,
             child: Padding(
@@ -472,7 +459,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
           ),
           const SizedBox(height: 24),
 
-          // Analisis Hari Ini
           const Text(
             'Analisis Hari Ini',
             style: TextStyle(
@@ -483,7 +469,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
           ),
           const SizedBox(height: 12),
           
-          // Card Analisis Makanan
           Card(
             color: Colors.orange[50],
             child: const ListTile(
@@ -499,7 +484,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
           ),
           const SizedBox(height: 8),
 
-          // Card Analisis Minuman
           Card(
             color: Colors.green[50],
             child: const ListTile(
@@ -515,7 +499,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
           ),
           const SizedBox(height: 8),
 
-          // Card Analisis Tidur
           Card(
             color: Colors.green[50],
             child: const ListTile(
@@ -531,7 +514,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
           ),
           const SizedBox(height: 24),
 
-          // Riwayat 7 Hari
           const Text(
             'Riwayat 7 Hari Terakhir',
             style: TextStyle(
@@ -542,7 +524,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
           ),
           const SizedBox(height: 12),
 
-          // List Riwayat
           _buildHistoryCard('10 November 2025', 8, 7.5),
           _buildHistoryCard('9 November 2025', 6, 6.0),
           _buildHistoryCard('8 November 2025', 7, 8.0),
@@ -612,7 +593,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
     );
   }
 
-  // Halaman Galeri Foto
   Widget _buildGalleryPage() {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
