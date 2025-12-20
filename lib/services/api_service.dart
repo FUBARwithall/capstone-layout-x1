@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 class ApiService {
   // Ganti dengan IP komputer kamu kalau testing di device fisik
   // Kalau di emulator, gunakan 10.0.2.2
-  static const String baseUrl = 'http://192.168.100.1:5000/api';
+  static const String baseUrl = 'http://192.168.56.1:5000/api';
 
   // Untuk device fisik, gunakan IP lokal komputer kamu
   // static const String baseUrl = 'http://192.168.1.xxx:5000/api';
@@ -16,23 +16,75 @@ class ApiService {
   // For testing purposes
   static set client(http.Client? client) => _client = client;
 
+  /// Kirim OTP ke email
+  static Future<Map<String, dynamic>> sendOtp({
+    required String email,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/send-otp'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'] ?? 'Unknown error',
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Gagal terhubung ke server: $e'};
+    }
+  }
+
+  /// Verifikasi OTP
+  static Future<Map<String, dynamic>> verifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/verify-otp'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'otp': otp}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'] ?? 'Unknown error',
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Gagal terhubung ke server: $e'};
+    }
+  }
+
+  /// Register dengan OTP
   static Future<Map<String, dynamic>> register({
     required String name,
     required String email,
     required String password,
+    required String otp,
   }) async {
     try {
-      final response = await (_client ?? http.Client()).post(
+      final response = await http.post(
         Uri.parse('$baseUrl/register'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'name': name, 'email': email, 'password': password}),
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'password': password,
+          'otp': otp,
+        }),
       );
 
       final data = jsonDecode(response.body);
 
       return {
         'success': response.statusCode == 201,
-        'message': data['message'],
+        'message': data['message'] ?? 'Unknown error',
         'data': data['data'],
       };
     } catch (e) {
