@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
-import 'user_preferences.dart';
+import '../../services/api_service.dart';
+import '../../services/user_preferences.dart';
+import '../../services/secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginPage extends StatefulWidget {
@@ -22,22 +23,12 @@ class _LoginPageState extends State<LoginPage> {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   Future<void> _handleGoogleSignIn() async {
-    print("GOOGLE SIGN-IN STARTED");
-
     setState(() => _isLoading = true);
 
     try {
       await _googleSignIn.signOut();
-
       final user = await _googleSignIn.signIn();
-
-      if (user == null) {
-        print("GOOGLE SIGN-IN CANCELLED");
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      print("GOOGLE SIGN-IN SUCCESS: ${user.email}");
+      if (user == null) return;
 
       final result = await ApiService.googleSignIn(
         name: user.displayName ?? user.email.split('@')[0],
@@ -45,61 +36,27 @@ class _LoginPageState extends State<LoginPage> {
         googleId: user.id,
       );
 
-      if (result['success']) {
-        final userData = result['data'];
-
-        await UserPreferences.saveUser(
-          id: userData['id'],
-          name: userData['name'],
-          email: userData['email'],
-        );
-
-        print("User saved to database: ${userData['name']} (${userData['email']})");
-
-        setState(() => _isLoading = false);
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Berhasil masuk dengan Google'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
-            ),
-          );
-
-          Navigator.pushReplacementNamed(context, '/homepage');
-        }
-      } else {
-        setState(() => _isLoading = false);
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result['message'] ?? 'Gagal masuk dengan Google'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      print("GOOGLE SIGN-IN ERROR: $e");
-
+      if (!mounted) return;
       setState(() => _isLoading = false);
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Maaf, Google Sign-In sedang tidak tersedia. Silakan masuk dengan email.',
-            ),
-            backgroundColor: Colors.orange,
-            duration: Duration(seconds: 3),
-          ),
-        );
-      }
-    }
+      if (result['success']) {
+        final data = result['data'];
 
-    print("GOOGLE SIGN-IN FINISHED");
+        // 1. TOKEN MASUK KE SECURE STORAGE
+        await SecureStorage.saveToken(data['access_token']);
+
+        // 2. USER DATA KE SHARED PREFS
+        await UserPreferences.saveUser(
+          id: data['id'],
+          name: data['name'],
+          email: data['email'],
+        );
+
+        Navigator.pushReplacementNamed(context, '/homepage');
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -110,62 +67,53 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _handleLogin() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-
-      try {
-        final result = await ApiService.login(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-        );
-
-        setState(() => _isLoading = false);
-
-        if (mounted) {
-          if (result['success']) {
-            final userData = result['data'];
-
-            await UserPreferences.saveUser(
-              id: userData['id'],
-              name: userData['name'],
-              email: userData['email'],
-            );
-
-            print('User logged in: ${userData['name']} (${userData['email']})');
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(result['message']),
-                backgroundColor: Colors.green,
-              ),
-            );
-
-            Navigator.pushReplacementNamed(context, '/homepage');
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(result['message']),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        }
-      } catch (e) {
-        setState(() => _isLoading = false);
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Terjadi kesalahan: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } else {
+    if (!_formKey.currentState!.validate()) {
       setState(() {
         _autovalidateMode = AutovalidateMode.onUserInteraction;
       });
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final result = await ApiService.login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (result['success']) {
+        final data = result['data'];
+
+        // 1. SIMPAN TOKEN (INI YANG PENTING)
+        await SecureStorage.saveToken(data['access_token']);
+
+        // 2. SIMPAN DATA USER (optional, non-sensitive)
+        await UserPreferences.saveUser(
+          id: data['id'],
+          name: data['name'],
+          email: data['email'],
+        );
+
+        Navigator.pushReplacementNamed(context, '/homepage');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message']),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
     }
   }
 

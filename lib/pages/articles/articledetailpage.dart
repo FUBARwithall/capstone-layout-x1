@@ -168,7 +168,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                   width: double.infinity,
                   height: 400,
                   child: Image.network(
-                    'http://localhost:5000/uploads/${widget.article['image']}',
+                    'http://localhost:5000/web/uploads/${widget.article['image']}',
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(

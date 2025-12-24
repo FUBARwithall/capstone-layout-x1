@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
-import 'user_preferences.dart';
+import '../../services/api_service.dart';
+import '../../services/user_preferences.dart';
+import '../../services/secure_storage.dart'; // Add this import
 import 'package:google_sign_in/google_sign_in.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -186,6 +187,10 @@ class _RegisterPageState extends State<RegisterPage> {
           if (result['success']) {
             final userData = result['data'];
 
+            // 1. SAVE TOKEN TO SECURE STORAGE (ADDED)
+            await SecureStorage.saveToken(userData['access_token']);
+
+            // 2. SAVE USER DATA TO SHARED PREFERENCES
             await UserPreferences.saveUser(
               id: userData['id'],
               name: userData['name'],
@@ -257,6 +262,10 @@ class _RegisterPageState extends State<RegisterPage> {
       if (result['success']) {
         final userData = result['data'];
 
+        // 1. SAVE TOKEN TO SECURE STORAGE (ADDED)
+        await SecureStorage.saveToken(userData['access_token']);
+
+        // 2. SAVE USER DATA TO SHARED PREFERENCES
         await UserPreferences.saveUser(
           id: userData['id'],
           name: userData['name'],

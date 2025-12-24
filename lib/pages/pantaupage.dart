@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:layout_x1/services/api_service.dart';
+import '../services/user_preferences.dart';
 
 void main() {
   runApp(const PantauKulitPage());
@@ -158,8 +159,10 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
         _loadingDrinks = false;
       });
     } else {
-      _loadingDrinks = false;
-      _showError('Format data minuman tidak valid');
+      setState(() {
+        _loadingDrinks = false;
+      });
+      _showError('Gagal memuat daftar minuman');
     }
   }
 
@@ -178,7 +181,13 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
     setState(() => _isSubmitting = true);
 
     try {
-      final userId = 1; // TODO: Replace with actual user ID
+      final userId = await UserPreferences.getUserId();
+
+      if (userId == null) {
+        _showError('User belum login');
+        return;
+      }
+
       final logDate = DateFormat('yyyy-MM-dd').format(_selectedDate);
 
       // 1. Submit all food logs

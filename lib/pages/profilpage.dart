@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'user_preferences.dart';
+import '../services/user_preferences.dart';
 
 class ProfilPage extends StatefulWidget {
   const ProfilPage({super.key});

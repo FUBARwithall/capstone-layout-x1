@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class BodyDetectionpage extends StatefulWidget {
   const BodyDetectionpage({super.key});
@@ -8,8 +10,9 @@ class BodyDetectionpage extends StatefulWidget {
 }
 
 class _BodyDetectionpageState extends State<BodyDetectionpage> {
-  String? uploadedImagePath;
+  File? uploadedImage; // Changed from String? to File?
   bool showResult = false;
+  final ImagePicker _picker = ImagePicker();
 
   final Map<String, dynamic> detectionResult = {
     'penyakit': 'Cacar (Chickenpox)',
@@ -37,6 +40,92 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
     {'nama': 'Acyclovir Cream 5%', 'harga': 'Rp40.000'},
     {'nama': 'Cetirizine Kimia Farma 10mg Tablet', 'harga': 'Rp28.000'},
   ];
+
+  // Function to pick image from gallery
+  Future<void> _pickImageFromGallery() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1800,
+        maxHeight: 1800,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        setState(() {
+          uploadedImage = File(image.path);
+          showResult = false; // Reset result when new image is uploaded
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
+      }
+    }
+  }
+
+  // Function to take photo with camera
+  Future<void> _takePhoto() async {
+    try {
+      final XFile? photo = await _picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1800,
+        maxHeight: 1800,
+        imageQuality: 85,
+      );
+
+      if (photo != null) {
+        setState(() {
+          uploadedImage = File(photo.path);
+          showResult = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error taking photo: $e')));
+      }
+    }
+  }
+
+  // Show dialog to choose between camera and gallery
+  void _showImageSourceDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Pilih Sumber Gambar'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(
+                  Icons.photo_library,
+                  color: Color(0xFF0066CC),
+                ),
+                title: const Text('Galeri'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImageFromGallery();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt, color: Color(0xFF0066CC)),
+                title: const Text('Kamera'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _takePhoto();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,29 +202,30 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
           runSpacing: 8,
           children: [
             ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  uploadedImagePath = 'assets/data/images/cacar.jpeg';
-                  showResult = false;
-                });
-              },
+              onPressed: _showImageSourceDialog, // Changed to show dialog
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF0066CC),
                 foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 28.0, vertical: 14.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 28.0,
+                  vertical: 14.0,
+                ),
               ),
               child: const Text('Upload'),
             ),
             ElevatedButton(
-              onPressed:
-                  uploadedImagePath != null ? () => setState(() => showResult = true) : null,
+              onPressed: uploadedImage != null
+                  ? () => setState(() => showResult = true)
+                  : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    uploadedImagePath != null ? const Color(0xFF0066CC) : Colors.grey,
+                backgroundColor: uploadedImage != null
+                    ? const Color(0xFF0066CC)
+                    : Colors.grey,
                 foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 28.0, vertical: 14.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 28.0,
+                  vertical: 14.0,
+                ),
               ),
               child: const Text('Deteksi'),
             ),
@@ -171,8 +261,11 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
             children: [
               const Row(
                 children: [
-                  Icon(Icons.medical_information,
-                      color: Color(0xFF0066CC), size: 28),
+                  Icon(
+                    Icons.medical_information,
+                    color: Color(0xFF0066CC),
+                    size: 28,
+                  ),
                   SizedBox(width: 10),
                   Text(
                     'Hasil Deteksi & Rekomendasi',
@@ -253,11 +346,16 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
                         width: double.infinity,
                         decoration: BoxDecoration(
                           color: Colors.grey[200],
-                          borderRadius:
-                              const BorderRadius.vertical(top: Radius.circular(12)),
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(12),
+                          ),
                         ),
                         child: const Center(
-                          child: Icon(Icons.image, size: 40, color: Colors.grey),
+                          child: Icon(
+                            Icons.image,
+                            size: 40,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
                     ),
@@ -273,14 +371,17 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 13),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
                             ),
                             Text(
                               produk['harga']!,
                               style: const TextStyle(
-                                  color: Colors.red,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13),
+                                color: Colors.red,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
                             ),
                           ],
                         ),
@@ -302,8 +403,11 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
             ),
             child: Row(
               children: [
-                Icon(Icons.warning_amber_rounded,
-                    color: Colors.amber.shade700, size: 20),
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.amber.shade700,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -335,9 +439,14 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
           children: [
             Icon(icon, color: color, size: 20),
             const SizedBox(width: 8),
-            Text(title,
-                style: TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.bold, color: color)),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -403,8 +512,10 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
                           margin: const EdgeInsets.only(top: 6),
                           width: 6,
                           height: 6,
-                          decoration:
-                              BoxDecoration(color: color, shape: BoxShape.circle),
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                          ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -443,16 +554,33 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(14),
-          child: Image.asset(
-            uploadedImagePath ?? 'assets/data/images/deteksitubuh.jpg',
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return const Center(
-                child: Icon(Icons.image_not_supported_outlined,
-                    size: 48, color: Colors.grey),
-              );
-            },
-          ),
+          child: uploadedImage != null
+              ? Image.file(
+                  uploadedImage!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(
+                      child: Icon(
+                        Icons.image_not_supported_outlined,
+                        size: 48,
+                        color: Colors.grey,
+                      ),
+                    );
+                  },
+                )
+              : Image.asset(
+                  'assets/data/images/deteksitubuh.jpg',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(
+                      child: Icon(
+                        Icons.image_not_supported_outlined,
+                        size: 48,
+                        color: Colors.grey,
+                      ),
+                    );
+                  },
+                ),
         ),
       ),
     );

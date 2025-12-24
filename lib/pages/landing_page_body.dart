@@ -5,7 +5,7 @@ import 'package:layout_x1/pages/products/productspage.dart';
 import 'package:layout_x1/pages/articles/articledetailpage.dart';
 import 'package:layout_x1/pages/products/productdetailpage.dart';
 import 'package:layout_x1/utils/html_helper.dart';
-import 'user_preferences.dart';
+import '../services/user_preferences.dart';
 
 class LandingPageBody extends StatefulWidget {
   @override
@@ -337,7 +337,7 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
                                     child: Image.network(
-                                      'http://localhost:5000/uploads/${article['image']}',
+                                      'http://localhost:5000/web/uploads/${article['image']}',
                                       width: 120,
                                       height: 120,
                                       fit: BoxFit.cover,
@@ -479,7 +479,7 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                   top: Radius.circular(12),
                 ),
                 child: Image.network(
-                  'http://localhost:5000/uploads/${image ?? ''}',
+                  'http://localhost:5000/web/uploads/${image ?? ''}',
                   width: 150,
                   height: 120,
                   fit: BoxFit.cover,
@@ -487,8 +487,10 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                     width: 150,
                     height: 120,
                     color: Colors.grey[300],
-                    child: const Center(
-                      child: Text('🧴', style: TextStyle(fontSize: 40)),
+                    child: const Icon(
+                      Icons.medical_services,
+                      size: 40,
+                      color: Colors.grey,
                     ),
                   ),
                 ),

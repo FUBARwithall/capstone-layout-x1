@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:layout_x1/pages/login_page.dart';
-import 'user_preferences.dart';
+import 'package:layout_x1/pages/auth/login_page.dart';
+import '../services/user_preferences.dart';
+import '../services/secure_storage.dart'; // Add this import
 
 class Pengaturan extends StatefulWidget {
   const Pengaturan({super.key});
@@ -66,6 +67,8 @@ class _PengaturanState extends State<Pengaturan> {
     );
 
     if (shouldLogout == true) {
+      // Clear both secure storage (token) and shared preferences (user data)
+      await SecureStorage.clear();
       await UserPreferences.clearUser();
 
       if (mounted) {
@@ -94,7 +97,7 @@ class _PengaturanState extends State<Pengaturan> {
             fontSize: 20,
           ),
         ),
-          automaticallyImplyLeading: false,
+        automaticallyImplyLeading: false,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -198,8 +201,7 @@ class _PengaturanState extends State<Pengaturan> {
                   leading: const Icon(Icons.favorite_border),
                   title: const Text("Favorites"),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () =>
-                      Navigator.pushNamed(context, '/favorite'),
+                  onTap: () => Navigator.pushNamed(context, '/favorite'),
                 ),
                 const Divider(),
 

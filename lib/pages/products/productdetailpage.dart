@@ -155,7 +155,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               if (product!['image'] != null &&
                   product!['image'].toString().isNotEmpty)
                 Image.network(
-                  'http://localhost:5000/uploads/${product!['image']}',
+                  'http://localhost:5000/web/uploads/${product!['image']}',
                   height: 350,
                   width: double.infinity,
                   fit: BoxFit.cover,

@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'secure_storage.dart';
 
 class UserPreferences {
   static const String _keyUserId = 'user_id';
@@ -57,5 +58,6 @@ class UserPreferences {
     await prefs.remove(_keyUserName);
     await prefs.remove(_keyUserEmail);
     await prefs.setBool(_keyIsLoggedIn, false);
+    await SecureStorage.clear();
   }
 }

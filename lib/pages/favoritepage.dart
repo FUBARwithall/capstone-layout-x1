@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:layout_x1/pages/articles/articledetailpage.dart';
 import 'package:layout_x1/pages/products/productdetailpage.dart';
 import 'package:layout_x1/services/api_service.dart';
-import 'user_preferences.dart';
+import '../services/user_preferences.dart';
 
 class FavoritePage extends StatefulWidget {
   const FavoritePage({super.key});
@@ -131,7 +131,7 @@ class _FavoritePageState extends State<FavoritePage> {
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(8),
                                         child: Image.network(
-                                          'http://localhost:5000/uploads/${article['image']}',
+                                          'http://localhost:5000/web/uploads/${article['image']}',
                                           width: 120,
                                           height: 120,
                                           fit: BoxFit.cover,
@@ -258,7 +258,7 @@ _favoriteProducts.isEmpty
                   ),
                 )
               : Image.network(
-                  'http://localhost:5000/uploads/$image',
+                  'http://localhost:5000/web/uploads/$image',
                   height: 120,
                   width: 150,
                   fit: BoxFit.cover,

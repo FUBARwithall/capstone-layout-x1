@@ -99,7 +99,7 @@ class _ArticlesPageBodyState extends State<ArticlesPageBody> {
                         article['image'] != null &&
                             article['image'].toString().isNotEmpty
                         ? Image.network(
-                            'http://localhost:5000/uploads/${article['image']}',
+                            'http://localhost:5000/web/uploads/${article['image']}',
                             width: 50,
                             height: 50,
                             fit: BoxFit.cover,
