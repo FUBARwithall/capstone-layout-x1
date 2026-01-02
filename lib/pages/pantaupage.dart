@@ -73,6 +73,26 @@ class DrinkLog {
   });
 }
 
+  class DailyHistory {
+    final String date;
+    final double skinScore; // Ini diambil dari skin_load_score
+    final double sleepHours;
+    final String foods; // String gabungan (misal: "Nasi, Ayam")
+    final String drinks;
+    final String status; // AMAN, WASPADA, OVER_LIMIT
+    final String triggers;
+
+    DailyHistory({
+      required this.date,
+      required this.skinScore,
+      required this.sleepHours,
+      required this.foods,
+      required this.drinks,
+      required this.status,
+      required this.triggers,
+    });
+  }
+
 // ================= MAIN PAGE =================
 
 class SkinHealthTracker extends StatefulWidget {
@@ -110,18 +130,62 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
 
   bool _isSubmitting = false;
 
+    bool _loadingHistory = true;
+  List<DailyHistory> _historyData = [];
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _loadFoods();
     _loadDrinks();
+    _loadHistoryData();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadHistoryData() async {
+    setState(() => _loadingHistory = true);
+
+    try {
+      final userId = await UserPreferences.getUserId();
+      if (userId == null) return;
+
+      final res = await ApiService.getAnalysisHistory(userId);
+
+      if (!mounted) return;
+
+      if (res['success'] == true) {
+        final List rawData = res['data'];
+
+        setState(() {
+          _historyData = rawData.map((item) {
+            return DailyHistory(
+              date: item['date'] ?? '-',
+              // Database menyimpan skin_load_score (beban kulit).
+              // Semakin tinggi score = semakin buruk beban kulitnya.
+              skinScore: (item['skin_load_score'] ?? 0).toDouble(),
+              sleepHours: (item['sleep_hours'] ?? 0).toDouble(),
+              foods: item['foods'] ?? '-',
+              drinks: item['drinks'] ?? '-',
+              status: item['status'] ?? 'UNKNOWN',
+              triggers: item['main_triggers'] ?? '-',
+            );
+          }).toList();
+          _loadingHistory = false;
+        });
+      } else {
+        setState(() => _loadingHistory = false);
+        // Optional: _showError(res['message']);
+      }
+    } catch (e) {
+      debugPrint("Error loading history: $e");
+      setState(() => _loadingHistory = false);
+    }
   }
 
   // ================= API =================
@@ -238,6 +302,7 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
       if (analysisRes['success'] == true) {
         _showAnalysisDialog(analysisRes['data']);
         _clearForm();
+        _loadHistoryData();
       } else {
         throw Exception('Gagal menghasilkan analisis');
       }
@@ -818,248 +883,326 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
     );
   }
 
-  Widget _buildAnalysisPage() {
+ Widget _buildAnalysisPage() {
+    if (_loadingHistory) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_historyData.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.analytics_outlined, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              'Belum ada data analisis',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+            TextButton(
+              onPressed: _loadHistoryData,
+              child: const Text('Refresh'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Ambil data terbaru (index 0) untuk "Analisis Hari Ini"
+    final latestData = _historyData.first;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
-          const Text(
-            'Analisis Kesehatan Kulit',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Lihat hubungan antara gaya hidup dan kondisi kulit',
-            style: TextStyle(fontSize: 14, color: Colors.grey),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Ringkasan Kesehatan',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: _loadHistoryData,
+                tooltip: 'Refresh Data',
+              ),
+            ],
           ),
           const SizedBox(height: 24),
 
-          // Card Grafik Kondisi Kulit
+          // --- GRAFIK CUSTOM SEDERHANA (Kondisi Kulit 7 Hari Terakhir) ---
           Card(
             elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.trending_up, color: Colors.teal),
-                      SizedBox(width: 8),
-                      Text(
-                        'Tren Kondisi Kulit',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                  const Text(
+                    'Tren Kondisi Kulit (Terbaru)',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 16),
-                  Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'Grafik Line Chart\n(Kondisi Kulit 7 Hari Terakhir)',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.grey),
-                      ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    height: 150,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: _historyData
+                          .take(7)
+                          .map((data) {
+                            // Logic warna bar
+                            Color barColor = data.skinScore >= 8
+                                ? Colors.green
+                                : data.skinScore >= 5
+                                ? Colors.orange
+                                : Colors.red;
+
+                            // Parse tanggal pendek (misal: "12")
+                            String shortDate = data.date.split('-').last;
+
+                            return Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Text(
+                                  data.skinScore.toString(),
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                // Bar Batang
+                                Container(
+                                  width: 20,
+                                  height:
+                                      (data.skinScore / 10) *
+                                      100, // Skala tinggi
+                                  decoration: BoxDecoration(
+                                    color: barColor,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  shortDate,
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            );
+                          })
+                          .toList()
+                          .reversed
+                          .toList(), // Reverse agar urutan kiri ke kanan (lama ke baru)
                     ),
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 16),
-
-          // Card Grafik Jam Tidur
-          Card(
-            elevation: 4,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.bedtime, color: Colors.blue),
-                      SizedBox(width: 8),
-                      Text(
-                        'Tren Jam Tidur',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'Grafik Bar Chart\n(Jam Tidur 7 Hari Terakhir)',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
           const SizedBox(height: 24),
 
-          // Analisis Hari Ini
+          // --- ANALISIS SINGKAT HARI TERAKHIR ---
           const Text(
-            'Analisis Hari Ini',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
+            'Insight Terakhir',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
 
-          // Card Analisis Makanan
-          Card(
-            color: Colors.orange[50],
-            child: const ListTile(
-              leading: Icon(
-                Icons.warning_amber,
-                color: Colors.orange,
-                size: 32,
-              ),
-              title: Text(
-                'Makanan Berminyak',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(
-                'Gorengan dapat meningkatkan produksi sebum dan risiko jerawat',
-              ),
+          // Logic tampilkan insight berdasarkan status data terakhir
+          if (latestData.status == 'AMAN')
+            _buildInsightCard(
+              'Kondisi Aman',
+              'Pertahankan pola tidur dan asupan airmu.',
+              Icons.check_circle,
+              Colors.green,
+            )
+          else if (latestData.status == 'WASPADA')
+            _buildInsightCard(
+              'Perlu Perhatian',
+              'Kurangi makanan berminyak atau perbaiki jam tidur.',
+              Icons.warning,
+              Colors.orange,
+            )
+          else
+            _buildInsightCard(
+              'Bahaya',
+              'Kondisi kulit memburuk. Evaluasi total asupan harian.',
+              Icons.error,
+              Colors.red,
             ),
-          ),
-          const SizedBox(height: 8),
 
-          // Card Analisis Minuman
-          Card(
-            color: Colors.green[50],
-            child: const ListTile(
-              leading: Icon(Icons.check_circle, color: Colors.green, size: 32),
-              title: Text(
-                'Hidrasi Baik',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(
-                'Air putih membantu hidrasi kulit dan detoksifikasi',
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // Card Analisis Tidur
-          Card(
-            color: Colors.green[50],
-            child: const ListTile(
-              leading: Icon(Icons.check_circle, color: Colors.green, size: 32),
-              title: Text(
-                'Tidur Cukup',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text('Durasi tidur 7 jam ideal untuk regenerasi kulit'),
-            ),
-          ),
           const SizedBox(height: 24),
 
-          // Riwayat 7 Hari
+          // --- RIWAYAT LIST ---
           const Text(
-            'Riwayat 7 Hari Terakhir',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
+            'Riwayat Harian',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
 
-          // List Riwayat
-          _buildHistoryCard('10 November 2025', 8, 7.5),
-          _buildHistoryCard('9 November 2025', 6, 6.0),
-          _buildHistoryCard('8 November 2025', 7, 8.0),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _historyData.length,
+            itemBuilder: (context, index) {
+              final data = _historyData[index];
+              return _buildDynamicHistoryCard(data);
+            },
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildHistoryCard(String date, int condition, double sleep) {
+  // Widget Helper untuk Insight
+  Widget _buildInsightCard(
+    String title,
+    String desc,
+    IconData icon,
+    Color color,
+  ) {
+    return Card(
+      color: color.withOpacity(0.1),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: color.withOpacity(0.5)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: ListTile(
+        leading: Icon(icon, color: color, size: 32),
+        title: Text(
+          title,
+          style: TextStyle(fontWeight: FontWeight.bold, color: color),
+        ),
+        subtitle: Text(desc),
+      ),
+    );
+  }
+
+  // Widget Helper untuk Item Riwayat (Dynamic)
+  Widget _buildDynamicHistoryCard(DailyHistory data) {
+    // Logic warna berdasarkan Status (bukan score manual lagi)
+    Color statusColor;
+    IconData statusIcon;
+
+    switch (data.status) {
+      case 'AMAN':
+        statusColor = Colors.green;
+        statusIcon = Icons.check_circle;
+        break;
+      case 'WASPADA':
+        statusColor = Colors.orange;
+        statusIcon = Icons.warning;
+        break;
+      case 'OVER_LIMIT':
+        statusColor = Colors.red;
+        statusIcon = Icons.error_outline;
+        break;
+      default:
+        statusColor = Colors.grey;
+        statusIcon = Icons.help;
+    }
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ExpansionTile(
-        leading: CircleAvatar(
-          backgroundColor: condition <= 3
-              ? Colors.red
-              : condition <= 7
-              ? Colors.orange
-              : Colors.green,
-          child: Text(
-            condition.toString(),
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: statusColor.withOpacity(0.1),
+            shape: BoxShape.circle,
           ),
+          child: Icon(statusIcon, color: statusColor),
         ),
-        title: Text(date, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text('Tidur: $sleep jam'),
+        title: Text(
+          data.date,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(
+          'Load Score: ${data.skinScore.toStringAsFixed(1)} • Tidur: ${data.sleepHours}h',
+          style: const TextStyle(fontSize: 12),
+        ),
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Makanan:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const Text('• Nasi goreng'),
-                const Text('• Ayam goreng'),
+                _buildSimpleDetailRow(Icons.restaurant, 'Makanan', data.foods),
                 const SizedBox(height: 8),
-                const Text(
-                  'Minuman:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                _buildSimpleDetailRow(
+                  Icons.local_drink,
+                  'Minuman',
+                  data.drinks,
                 ),
-                const Text('• Air putih'),
-                const Text('• Kopi'),
-                const SizedBox(height: 12),
-                const Divider(),
-                const SizedBox(height: 8),
-                const Text(
-                  '⚠️ Makanan berminyak dapat meningkatkan jerawat',
-                  style: TextStyle(color: Colors.orange),
-                ),
-                const Text(
-                  '✅ Hidrasi cukup membantu kesehatan kulit',
-                  style: TextStyle(color: Colors.green),
-                ),
+                const Divider(height: 24),
+                if (data.triggers != '-' && data.triggers.isNotEmpty)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.info_outline,
+                        size: 16,
+                        color: Colors.red,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Pemicu: ${data.triggers}',
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSimpleDetailRow(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 16, color: Colors.grey),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+              Text(value, style: const TextStyle(fontSize: 14)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

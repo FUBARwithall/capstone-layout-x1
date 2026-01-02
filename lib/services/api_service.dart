@@ -455,4 +455,36 @@ class ApiService {
       return {'success': false, 'message': 'Gagal ambil analisis: $e'};
     }
   }
+
+  // GET History Analysis
+  static Future<Map<String, dynamic>> getAnalysisHistory(int userId) async {
+    try {
+      final headers = await _getAuthHeaders();
+      final response = await (_client ?? http.Client()).get(
+        Uri.parse('$baseUrl/skin-analysis/history?user_id=$userId'),
+        headers: headers,
+      );
+
+      // Debugging response
+      if (kDebugMode) {
+        print('History Response: ${response.body}');
+      }
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'data': data['data'], // Ini List of objects
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Gagal mengambil data',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Error: $e'};
+    }
+  }
 }
