@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_html/flutter_html.dart';
+import 'package:layout_x1/services/api_service.dart';
 
 class ArticleDetailPage extends StatefulWidget {
   final Map<String, dynamic> article;
@@ -22,6 +23,8 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
   bool _favoriteChanged = false;
   late int userId;
 
+  String get baseUrl => ApiService.baseUrl.replaceAll('/api', '');
+
   @override
   void initState() {
     super.initState();
@@ -32,7 +35,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
   Future<void> fetchFavoriteStatus() async {
     final articleId = widget.article['id'];
     final url = Uri.parse(
-      'http://localhost:5000/api/articles/$articleId/favorite/status?user_id=$userId',
+      '${ApiService.baseUrl}/articles/$articleId/favorite/status?user_id=$userId',
     );
 
     try {
@@ -49,9 +52,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
 
   Future<void> toggleFavorite() async {
     final articleId = widget.article['id'];
-    final url = Uri.parse(
-      'http://localhost:5000/api/articles/$articleId/favorite',
-    );
+    final url = Uri.parse('${ApiService.baseUrl}/articles/$articleId/favorite');
 
     try {
       if (isLoved) {
@@ -63,7 +64,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
 
         setState(() {
           isLoved = false;
-          _favoriteChanged = true; 
+          _favoriteChanged = true;
         });
       } else {
         await http.post(
@@ -74,7 +75,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
 
         setState(() {
           isLoved = true;
-          _favoriteChanged = true; 
+          _favoriteChanged = true;
         });
       }
     } catch (e) {
@@ -168,7 +169,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                   width: double.infinity,
                   height: 400,
                   child: Image.network(
-                    'http://localhost:5000/web/uploads/${widget.article['image']}',
+                    '$baseUrl/web/uploads/${widget.article['image']}',
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(

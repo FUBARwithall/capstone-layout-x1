@@ -4,7 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'secure_storage.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.100.1:5000/api';
+  static const String baseUrl =
+      'http://192.168.100.1:5000/api';
 
   static http.Client? _client;
 

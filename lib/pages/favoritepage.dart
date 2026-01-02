@@ -17,6 +17,9 @@ class _FavoritePageState extends State<FavoritePage> {
   int? _userId;
   bool _isLoading = true;
 
+  // Get base URL for uploads (without /api suffix)
+  String get baseUrl => ApiService.baseUrl.replaceAll('/api', '');
+
   @override
   void initState() {
     super.initState();
@@ -26,9 +29,6 @@ class _FavoritePageState extends State<FavoritePage> {
   Future<void> _loadUserAndFavorites() async {
     try {
       final user = await UserPreferences.getUser();
-
-      // 🔍 CEK USER
-      debugPrint('User data: $user');
 
       if (user == null) {
         debugPrint('User belum login');
@@ -40,16 +40,8 @@ class _FavoritePageState extends State<FavoritePage> {
 
       _userId = user['id'];
 
-      // 🔍 CEK USER ID
-      debugPrint('User ID: $_userId');
-
       final articles = await ApiService.getFavoriteArticles(_userId!);
-      final products =
-          await ApiService.getFavoriteProducts(_userId!);
-
-      // 🔍 CEK RESPONSE API
-      debugPrint('Articles response: $articles');
-      debugPrint('Products response: $products');
+      final products = await ApiService.getFavoriteProducts(_userId!);
 
       setState(() {
         _favoriteArticles = articles['data'] ?? [];
@@ -57,9 +49,6 @@ class _FavoritePageState extends State<FavoritePage> {
         _isLoading = false;
       });
 
-      // 🔍 CEK JUMLAH DATA
-      debugPrint('Articles count: ${_favoriteArticles.length}');
-      debugPrint('Products count: ${_favoriteProducts.length}');
     } catch (e) {
       debugPrint('Favorite error: $e');
 
@@ -131,7 +120,7 @@ class _FavoritePageState extends State<FavoritePage> {
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(8),
                                         child: Image.network(
-                                          'http://localhost:5000/web/uploads/${article['image']}',
+                                          '$baseUrl/web/uploads/${article['image']}',
                                           width: 120,
                                           height: 120,
                                           fit: BoxFit.cover,
@@ -178,50 +167,50 @@ class _FavoritePageState extends State<FavoritePage> {
 
                   /// ===== PRODUK FAVORIT =====
                   const Text(
-  'Produk Favorit',
-  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-),
-const SizedBox(height: 12),
-
-_favoriteProducts.isEmpty
-    ? const Text('Belum ada produk favorit')
-    : SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: _favoriteProducts.map((p) {
-            return GestureDetector(
-              onTap: () async {
-                final productId =
-                    int.tryParse(p['id'].toString());
-
-                if (productId == null) return;
-
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ProductDetailPage(
-                      productId: productId,
-                      userId: _userId!,
-                    ),
+                    'Produk Favorit',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
-                );
+                  const SizedBox(height: 12),
 
-                // 🔁 refresh kalau favorite berubah
-                if (result != null &&
-                    result['changed'] == true) {
-                  _loadUserAndFavorites();
-                }
-              },
-              child: _buildProductCard(
-                p['image'],
-                p['merek'] ?? '',
-                'Rp ${p['harga']}',
-              ),
-            );
-          }).toList(),
-        ),
-      ),
+                  _favoriteProducts.isEmpty
+                      ? const Text('Belum ada produk favorit')
+                      : SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: _favoriteProducts.map((p) {
+                              return GestureDetector(
+                                onTap: () async {
+                                  final productId = int.tryParse(
+                                    p['id'].toString(),
+                                  );
 
+                                  if (productId == null) return;
+
+                                  final result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ProductDetailPage(
+                                        productId: productId,
+                                        userId: _userId!,
+                                      ),
+                                    ),
+                                  );
+
+                                  // 🔁 refresh kalau favorite berubah
+                                  if (result != null &&
+                                      result['changed'] == true) {
+                                    _loadUserAndFavorites();
+                                  }
+                                },
+                                child: _buildProductCard(
+                                  p['image'],
+                                  p['merek'] ?? '',
+                                  'Rp ${p['harga']}',
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
                 ],
               ),
             ),
@@ -229,65 +218,61 @@ _favoriteProducts.isEmpty
   }
 
   Widget _buildProductCard(String? image, String title, String price) {
-  return Container(
-    width: 150,
-    margin: const EdgeInsets.only(right: 12),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.grey.withOpacity(0.1),
-          blurRadius: 5,
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ClipRRect(
-          borderRadius:
-              const BorderRadius.vertical(top: Radius.circular(12)),
-          child: image == null
-              ? Container(
-                  height: 120,
-                  width: 150,
-                  color: Colors.grey[300],
-                  child: const Center(
-                    child: Icon(Icons.shopping_bag, size: 40),
+    return Container(
+      width: 150,
+      margin: const EdgeInsets.only(right: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 5),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            child: image == null
+                ? Container(
+                    height: 120,
+                    width: 150,
+                    color: Colors.grey[300],
+                    child: const Center(
+                      child: Icon(Icons.shopping_bag, size: 40),
+                    ),
+                  )
+                : Image.network(
+                    '$baseUrl/web/uploads/$image',
+                    height: 120,
+                    width: 150,
+                    fit: BoxFit.cover,
                   ),
-                )
-              : Image.network(
-                  'http://localhost:5000/web/uploads/$image',
-                  height: 120,
-                  width: 150,
-                  fit: BoxFit.cover,
-                ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                price,
-                style: const TextStyle(
-                    color: Colors.redAccent, fontSize: 12),
-              ),
-            ],
           ),
-        ),
-      ],
-    ),
-  );
-}
-
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  price,
+                  style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

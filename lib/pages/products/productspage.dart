@@ -12,6 +12,9 @@ class ProductsPage extends StatefulWidget {
 class _ProductsPageState extends State<ProductsPage> {
   List<dynamic> _products = [];
 
+  // Get base URL for uploads (without /api suffix)
+  String get baseUrl => ApiService.baseUrl.replaceAll('/api', '');
+
   @override
   void initState() {
     super.initState();
@@ -153,12 +156,32 @@ class _ProductsPageState extends State<ProductsPage> {
                   top: Radius.circular(12),
                 ),
               ),
-              child: Center(
-                child: Text(
-                  image ?? '🧴',
-                  style: const TextStyle(fontSize: 36),
-                ),
-              ),
+              child: image != null && image.isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(12),
+                      ),
+                      child: Image.network(
+                        '$baseUrl/web/uploads/$image',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Center(
+                            child: Icon(
+                              Icons.medical_services,
+                              size: 40,
+                              color: Colors.grey[400],
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  : Center(
+                      child: Icon(
+                        Icons.medical_services,
+                        size: 40,
+                        color: Colors.grey[400],
+                      ),
+                    ),
             ),
           ),
 

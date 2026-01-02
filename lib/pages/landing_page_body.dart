@@ -20,6 +20,9 @@ class _LandingPageBodyState extends State<LandingPageBody> {
 
   int? _userId;
 
+  // Get base URL for uploads (without /api suffix)
+  String get baseUrl => ApiService.baseUrl.replaceAll('/api', '');
+
   @override
   void initState() {
     super.initState();
@@ -152,11 +155,7 @@ class _LandingPageBodyState extends State<LandingPageBody> {
 
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => ProductsPage(
-          userId: _userId!,
-        ),
-      ),
+      MaterialPageRoute(builder: (_) => ProductsPage(userId: _userId!)),
     );
   }
 
@@ -337,7 +336,7 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
                                     child: Image.network(
-                                      'http://localhost:5000/web/uploads/${article['image']}',
+                                      '$baseUrl/web/uploads/${article['image']}',
                                       width: 120,
                                       height: 120,
                                       fit: BoxFit.cover,
@@ -479,7 +478,7 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                   top: Radius.circular(12),
                 ),
                 child: Image.network(
-                  'http://localhost:5000/web/uploads/${image ?? ''}',
+                  '$baseUrl/web/uploads/${image ?? ''}',
                   width: 150,
                   height: 120,
                   fit: BoxFit.cover,

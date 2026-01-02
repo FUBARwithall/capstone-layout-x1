@@ -16,6 +16,9 @@ class _ArticlesPageBodyState extends State<ArticlesPageBody> {
   List<dynamic> _articles = [];
   bool _isLoading = true;
 
+  // Get base URL for uploads (without /api suffix)
+  String get baseUrl => ApiService.baseUrl.replaceAll('/api', '');
+
   @override
   void initState() {
     super.initState();
@@ -64,10 +67,8 @@ class _ArticlesPageBodyState extends State<ArticlesPageBody> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ArticleDetailPage(
-          article: article,
-          userId: widget.userId,
-        ),
+        builder: (_) =>
+            ArticleDetailPage(article: article, userId: widget.userId),
       ),
     );
   }
@@ -99,7 +100,7 @@ class _ArticlesPageBodyState extends State<ArticlesPageBody> {
                         article['image'] != null &&
                             article['image'].toString().isNotEmpty
                         ? Image.network(
-                            'http://localhost:5000/web/uploads/${article['image']}',
+                            '$baseUrl/web/uploads/${article['image']}',
                             width: 50,
                             height: 50,
                             fit: BoxFit.cover,

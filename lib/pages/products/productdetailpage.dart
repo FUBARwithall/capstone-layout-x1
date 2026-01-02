@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:layout_x1/services/api_service.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final int productId;
@@ -23,6 +24,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   bool _favoriteChanged = false;
   late int userId;
 
+  // Get base URL for uploads (without /api suffix)
+  String get baseUrl => ApiService.baseUrl.replaceAll('/api', '');
+
   @override
   void initState() {
     super.initState();
@@ -32,9 +36,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   Future<void> fetchProductDetail() async {
-    final url = Uri.parse(
-      'http://localhost:5000/api/products/${widget.productId}',
-    );
+    final url = Uri.parse('${ApiService.baseUrl}/products/${widget.productId}');
 
     try {
       final response = await http.get(url);
@@ -54,7 +56,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   Future<void> fetchFavoriteStatus() async {
     final url = Uri.parse(
-      'http://localhost:5000/api/products/${widget.productId}/favorite/status?user_id=$userId',
+      '${ApiService.baseUrl}/products/${widget.productId}/favorite/status?user_id=$userId',
     );
 
     try {
@@ -71,7 +73,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   Future<void> toggleFavorite() async {
     final url = Uri.parse(
-      'http://localhost:5000/api/products/${widget.productId}/favorite',
+      '${ApiService.baseUrl}/products/${widget.productId}/favorite',
     );
 
     try {
@@ -155,7 +157,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               if (product!['image'] != null &&
                   product!['image'].toString().isNotEmpty)
                 Image.network(
-                  'http://localhost:5000/web/uploads/${product!['image']}',
+                  '$baseUrl/web/uploads/${product!['image']}',
                   height: 350,
                   width: double.infinity,
                   fit: BoxFit.cover,
@@ -216,17 +218,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
                     const Text(
                       'Deskripsi Produk',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
 
                     const SizedBox(height: 8),
 
-                    Text(
-                      product!['deskripsi'],
-                      textAlign: TextAlign.justify,
-                    ),
+                    Text(product!['deskripsi'], textAlign: TextAlign.justify),
 
                     const SizedBox(height: 10),
                     Divider(),
@@ -240,7 +237,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     SizedBox(height: 4),
                     Text('Manufaktur: ${product!['manufaktur']}'),
                     SizedBox(height: 4),
-                    Text('Nomor registrasi: ${product!['nomor_registrasi']}')
+                    Text('Nomor registrasi: ${product!['nomor_registrasi']}'),
                   ],
                 ),
               ),

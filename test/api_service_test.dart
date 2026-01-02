@@ -9,7 +9,7 @@ void main() {
 
     setUp(() {
       mockClient = MockClient((request) async {
-        if (request.url.path == '/api/health') {
+        if (request.url.path == '/health') {
           return http.Response('', 200);
         }
         return http.Response('Not Found', 404);
