@@ -819,34 +819,308 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
   }
 
   Widget _buildAnalysisPage() {
-    return const Center(
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.analytics, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'Analisis (placeholder)',
-            style: TextStyle(fontSize: 18, color: Colors.grey),
+          // Header
+          const Text(
+            'Analisis Kesehatan Kulit',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Lihat hubungan antara gaya hidup dan kondisi kulit',
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          const SizedBox(height: 24),
+
+          // Card Grafik Kondisi Kulit
+          Card(
+            elevation: 4,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.trending_up, color: Colors.teal),
+                      SizedBox(width: 8),
+                      Text(
+                        'Tren Kondisi Kulit',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Grafik Line Chart\n(Kondisi Kulit 7 Hari Terakhir)',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Card Grafik Jam Tidur
+          Card(
+            elevation: 4,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.bedtime, color: Colors.blue),
+                      SizedBox(width: 8),
+                      Text(
+                        'Tren Jam Tidur',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Grafik Bar Chart\n(Jam Tidur 7 Hari Terakhir)',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Analisis Hari Ini
+          const Text(
+            'Analisis Hari Ini',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Card Analisis Makanan
+          Card(
+            color: Colors.orange[50],
+            child: const ListTile(
+              leading: Icon(
+                Icons.warning_amber,
+                color: Colors.orange,
+                size: 32,
+              ),
+              title: Text(
+                'Makanan Berminyak',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                'Gorengan dapat meningkatkan produksi sebum dan risiko jerawat',
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Card Analisis Minuman
+          Card(
+            color: Colors.green[50],
+            child: const ListTile(
+              leading: Icon(Icons.check_circle, color: Colors.green, size: 32),
+              title: Text(
+                'Hidrasi Baik',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                'Air putih membantu hidrasi kulit dan detoksifikasi',
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Card Analisis Tidur
+          Card(
+            color: Colors.green[50],
+            child: const ListTile(
+              leading: Icon(Icons.check_circle, color: Colors.green, size: 32),
+              title: Text(
+                'Tidur Cukup',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text('Durasi tidur 7 jam ideal untuk regenerasi kulit'),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Riwayat 7 Hari
+          const Text(
+            'Riwayat 7 Hari Terakhir',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // List Riwayat
+          _buildHistoryCard('10 November 2025', 8, 7.5),
+          _buildHistoryCard('9 November 2025', 6, 6.0),
+          _buildHistoryCard('8 November 2025', 7, 8.0),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHistoryCard(String date, int condition, double sleep) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ExpansionTile(
+        leading: CircleAvatar(
+          backgroundColor: condition <= 3
+              ? Colors.red
+              : condition <= 7
+              ? Colors.orange
+              : Colors.green,
+          child: Text(
+            condition.toString(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        title: Text(date, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text('Tidur: $sleep jam'),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Makanan:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const Text('• Nasi goreng'),
+                const Text('• Ayam goreng'),
+                const SizedBox(height: 8),
+                const Text(
+                  'Minuman:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const Text('• Air putih'),
+                const Text('• Kopi'),
+                const SizedBox(height: 12),
+                const Divider(),
+                const SizedBox(height: 8),
+                const Text(
+                  '⚠️ Makanan berminyak dapat meningkatkan jerawat',
+                  style: TextStyle(color: Colors.orange),
+                ),
+                const Text(
+                  '✅ Hidrasi cukup membantu kesehatan kulit',
+                  style: TextStyle(color: Colors.green),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
+  // Halaman Galeri Foto
   Widget _buildGalleryPage() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.photo_library, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'Galeri (placeholder)',
-            style: TextStyle(fontSize: 18, color: Colors.grey),
-          ),
-        ],
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 0.8,
       ),
+      itemCount: 6,
+      itemBuilder: (context, index) {
+        return Card(
+          clipBehavior: Clip.antiAlias,
+          elevation: 4,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Container(
+                  color: Colors.grey[300],
+                  child: Icon(Icons.face, size: 64, color: Colors.grey[600]),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(12),
+                color: Colors.white,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${10 - index} Nov 2025',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.circle, size: 8, color: Colors.green),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Kondisi: ${8 - index}/10',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
