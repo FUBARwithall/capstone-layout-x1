@@ -247,7 +247,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
         border: Border.all(color: const Color(0xFF0066CC), width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -331,7 +331,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
                   color: Colors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 6,
                       offset: const Offset(0, 3),
                     ),
@@ -453,7 +453,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
@@ -496,7 +496,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(

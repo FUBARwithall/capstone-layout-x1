@@ -225,7 +225,7 @@ class _FavoritePageState extends State<FavoritePage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
-          BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 5),
+          BoxShadow(color: Colors.grey.withValues(alpha: 0.1), blurRadius: 5),
         ],
       ),
       child: Column(

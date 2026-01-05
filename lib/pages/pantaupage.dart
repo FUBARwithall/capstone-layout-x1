@@ -597,7 +597,7 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
                   _loadingFoods
                       ? const Center(child: CircularProgressIndicator())
                       : DropdownButtonFormField<int>(
-                          value: _selectedFoodId,
+                          initialValue: _selectedFoodId,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                             hintText: 'Pilih makanan',
@@ -618,7 +618,7 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<int>(
-                          value: _foodQuantity,
+                          initialValue: _foodQuantity,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                             labelText: 'Porsi',
@@ -701,7 +701,7 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
                   _loadingDrinks
                       ? const Center(child: CircularProgressIndicator())
                       : DropdownButtonFormField<int>(
-                          value: _selectedDrinkId,
+                          initialValue: _selectedDrinkId,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                             hintText: 'Pilih minuman',
@@ -723,7 +723,7 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<int>(
-                          value: _drinkQuantity,
+                          initialValue: _drinkQuantity,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                             labelText: 'Jumlah',
@@ -1076,10 +1076,10 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
     Color color,
   ) {
     return Card(
-      color: color.withOpacity(0.1),
+      color: color.withValues(alpha: 0.1),
       elevation: 0,
       shape: RoundedRectangleBorder(
-        side: BorderSide(color: color.withOpacity(0.5)),
+        side: BorderSide(color: color.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(8),
       ),
       child: ListTile(
@@ -1125,7 +1125,7 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: statusColor.withOpacity(0.1),
+            color: statusColor.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(statusIcon, color: statusColor),

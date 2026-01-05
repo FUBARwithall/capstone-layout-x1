@@ -85,14 +85,16 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        Navigator.pop(context, {
-          'changed': _favoriteChanged,
-          'article_id': widget.article['id'],
-          'isLoved': isLoved,
-        });
-        return false;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (!didPop) {
+          Navigator.pop(context, {
+            'changed': _favoriteChanged,
+            'article_id': widget.article['id'],
+            'isLoved': isLoved,
+          });
+        }
       },
       child: Scaffold(
         appBar: AppBar(
