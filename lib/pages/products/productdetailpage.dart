@@ -117,10 +117,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       );
     }
 
-    return WillPopScope(
-      onWillPop: () async {
-        Navigator.pop(context, {'changed': _favoriteChanged});
-        return false;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (!didPop) {
+          Navigator.pop(context, {'changed': _favoriteChanged});
+        }
       },
       child: Scaffold(
         appBar: AppBar(

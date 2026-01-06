@@ -184,9 +184,10 @@ static Future<Map<String, dynamic>> sendChatMessage({
 
   static Future<Map<String, dynamic>> getArticles() async {
     try {
+      final headers = await _getAuthHeaders();
       final response = await (_client ?? http.Client()).get(
         Uri.parse('$baseUrl/articles'),
-        headers: _getHeaders(),
+        headers: headers,
       );
       final data = jsonDecode(response.body);
       return {
@@ -201,9 +202,10 @@ static Future<Map<String, dynamic>> sendChatMessage({
 
   static Future<Map<String, dynamic>> getArticle(int articleId) async {
     try {
+      final headers = await _getAuthHeaders();
       final response = await (_client ?? http.Client()).get(
         Uri.parse('$baseUrl/articles/$articleId'),
-        headers: _getHeaders(),
+        headers: headers,
       );
       final data = jsonDecode(response.body);
       return {
@@ -240,9 +242,10 @@ static Future<Map<String, dynamic>> sendChatMessage({
 
   static Future<Map<String, dynamic>> getProducts() async {
     try {
+      final headers = await _getAuthHeaders();
       final response = await (_client ?? http.Client()).get(
         Uri.parse('$baseUrl/products'),
-        headers: _getHeaders(),
+        headers: headers,
       );
       final data = jsonDecode(response.body);
       return {
@@ -257,9 +260,10 @@ static Future<Map<String, dynamic>> sendChatMessage({
 
   static Future<Map<String, dynamic>> getProduct(int productId) async {
     try {
+      final headers = await _getAuthHeaders();
       final response = await (_client ?? http.Client()).get(
         Uri.parse('$baseUrl/products/$productId'),
-        headers: _getHeaders(),
+        headers: headers,
       );
       final data = jsonDecode(response.body);
       return {
