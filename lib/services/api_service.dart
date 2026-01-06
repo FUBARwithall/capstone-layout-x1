@@ -156,6 +156,30 @@ class ApiService {
     }
   }
 
+  // ================= CHATBOT API (Public - No Auth) =================
+static Future<Map<String, dynamic>> sendChatMessage({
+  required String message,
+}) async {
+  try {
+    final response = await (_client ?? http.Client()).post(
+      Uri.parse('$baseUrl/chatbot/chat'),
+      headers: _getHeaders(),  // No auth needed
+      body: jsonEncode({'message': message}),
+    );
+    
+    final data = jsonDecode(response.body);
+    return {
+      'success': response.statusCode == 200,
+      'reply': data['reply'],
+    };
+  } catch (e) {
+    return {
+      'success': false, 
+      'reply': 'Gagal terhubung ke chatbot: $e'
+    };
+  }
+}
+
   // ================= ARTICLES API =================
 
   static Future<Map<String, dynamic>> getArticles() async {
