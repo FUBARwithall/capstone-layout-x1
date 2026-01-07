@@ -125,8 +125,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
   // ---------- SLEEP ----------
   double _sleepHours = 7.0;
 
-  // ---------- SKIN CONDITION ----------
-  double _skinCondition = 5;
 
   bool _isSubmitting = false;
 
@@ -390,7 +388,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
       _foodLogs.clear();
       _drinkLogs.clear();
       _sleepHours = 7.0;
-      _skinCondition = 5;
       _selectedFoodId = null;
       _selectedDrinkId = null;
       _foodQuantity = 1;
@@ -544,44 +541,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
                   setState(() => _selectedDate = picked);
                 }
               },
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // SKIN CONDITION
-          _buildSectionTitle('Kondisi Kulit Hari Ini'),
-          Card(
-            elevation: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Text(
-                    '${_skinCondition.toInt()}/10',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0066CC),
-                    ),
-                  ),
-                  Slider(
-                    value: _skinCondition,
-                    min: 1,
-                    max: 10,
-                    divisions: 9,
-                    label: _skinCondition.toInt().toString(),
-                    activeColor: const Color(0xFF0066CC),
-                    onChanged: (v) => setState(() => _skinCondition = v),
-                  ),
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Buruk', style: TextStyle(fontSize: 12)),
-                      Text('Sangat Baik', style: TextStyle(fontSize: 12)),
-                    ],
-                  ),
-                ],
-              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -1211,10 +1170,10 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 0.8,
+        crossAxisCount: 3,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 0.7,
       ),
       itemCount: 6,
       itemBuilder: (context, index) {
@@ -1244,19 +1203,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.circle, size: 8, color: Colors.green),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Kondisi: ${8 - index}/10',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
