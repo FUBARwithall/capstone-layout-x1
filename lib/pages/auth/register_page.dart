@@ -26,7 +26,9 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _otpVerified = false;
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: ApiService.googleClientId,
+  );
 
   @override
   void dispose() {

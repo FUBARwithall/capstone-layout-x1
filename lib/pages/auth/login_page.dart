@@ -20,44 +20,95 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: ApiService.googleClientId,
+  );
 
   Future<void> _handleGoogleSignIn() async {
+    debugPrint('=== GOOGLE SIGN IN START ===');
     setState(() => _isLoading = true);
 
     try {
+      debugPrint('[1] Signing out existing Google session');
       await _googleSignIn.signOut();
-      final user = await _googleSignIn.signIn();
-      if (user == null) return;
 
+      debugPrint('[2] Calling googleSignIn.signIn()');
+      final user = await _googleSignIn.signIn();
+
+      if (user == null) {
+        debugPrint('[CANCELLED] User closed Google Sign-In dialog');
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      debugPrint('[3] Google user obtained');
+      debugPrint('  - id: ${user.id}');
+      debugPrint('  - email: ${user.email}');
+      debugPrint('  - name: ${user.displayName}');
+
+      debugPrint('[4] Sending data to backend (ApiService.googleSignIn)');
       final result = await ApiService.googleSignIn(
         name: user.displayName ?? user.email.split('@')[0],
         email: user.email,
         googleId: user.id,
       );
 
+      debugPrint('[5] Backend response received');
+      debugPrint('  - raw result: $result');
+
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      if (result['success']) {
+      if (result['success'] == true) {
+        debugPrint('[SUCCESS] Backend accepted Google login');
+
         final data = result['data'];
+        debugPrint('  - user id: ${data['id']}');
+        debugPrint('  - email: ${data['email']}');
+        debugPrint('  - token exists: ${data['access_token'] != null}');
 
-        // 1. TOKEN MASUK KE SECURE STORAGE
         await SecureStorage.saveToken(data['access_token']);
+        debugPrint('[6] Token saved to SecureStorage');
 
-        // 2. USER DATA KE SHARED PREFS
         await UserPreferences.saveUser(
           id: data['id'],
           name: data['name'],
           email: data['email'],
         );
+        debugPrint('[7] User data saved to SharedPreferences');
 
         Navigator.pushReplacementNamed(context, '/homepage');
+      } else {
+        debugPrint('[FAILED] Backend rejected Google login');
+        debugPrint('  - message: ${result['message']}');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Gagal masuk ke server'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('=== GOOGLE SIGN IN ERROR ===');
+      debugPrint('Error type: ${e.runtimeType}');
+      debugPrint('Error: $e');
+      debugPrint('Stacktrace:\n$stack');
+
+      if (!mounted) return;
       setState(() => _isLoading = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Terjadi kesalahan Google Sign-In: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      debugPrint('=== GOOGLE SIGN IN END ===');
     }
   }
+
 
   @override
   void dispose() {

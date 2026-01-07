@@ -6,6 +6,8 @@ import 'secure_storage.dart';
 class ApiService {
   static const String baseUrl =
       'http://192.168.100.1:5000/api';
+  static const String googleClientId =
+      '139914337046-333vbk7mq3q47ue93tdahl74n0jvmbk7.apps.googleusercontent.com';
 
   static http.Client? _client;
 
