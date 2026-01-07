@@ -27,7 +27,7 @@ class _RegisterPageState extends State<RegisterPage> {
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: ApiService.googleClientId,
+    scopes: ['email'],
   );
 
   @override

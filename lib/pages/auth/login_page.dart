@@ -21,7 +21,7 @@ class _LoginPageState extends State<LoginPage> {
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: ApiService.googleClientId,
+    scopes: ['email'],
   );
 
   Future<void> _handleGoogleSignIn() async {
