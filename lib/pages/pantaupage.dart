@@ -913,7 +913,7 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
                   ),
                   const SizedBox(height: 20),
                   SizedBox(
-                    height: 150,
+                    height: 200, // Increased from 150 to 200
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -922,19 +922,23 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
                           .map((data) {
                             // Logic warna bar
                             Color barColor = data.skinScore >= 8
-                                ? Colors.green
+                                ? Colors.red
                                 : data.skinScore >= 5
                                 ? Colors.orange
-                                : Colors.red;
+                                : Colors.green;
 
                             // Parse tanggal pendek (misal: "12")
                             String shortDate = data.date.split('-').last;
+
+                            // Normalize height calculation to avoid overflow if score > 10
+                            double maxExpectedScore = 15.0; // Assume max load score is around this
+                            double barHeight = (data.skinScore / maxExpectedScore) * 120; // 120 is max bar height
 
                             return Column(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 Text(
-                                  data.skinScore.toString(),
+                                  data.skinScore.toStringAsFixed(1),
                                   style: const TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
@@ -943,10 +947,8 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
                                 const SizedBox(height: 4),
                                 // Bar Batang
                                 Container(
-                                  width: 20,
-                                  height:
-                                      (data.skinScore / 10) *
-                                      100, // Skala tinggi
+                                  width: 24, // Slightly wider
+                                  height: barHeight,
                                   decoration: BoxDecoration(
                                     color: barColor,
                                     borderRadius: BorderRadius.circular(4),
@@ -965,7 +967,7 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
                           })
                           .toList()
                           .reversed
-                          .toList(), // Reverse agar urutan kiri ke kanan (lama ke baru)
+                          .toList(),
                     ),
                   ),
                 ],
