@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_html/flutter_html.dart';
 import 'package:layout_x1/services/api_service.dart';
+import 'package:layout_x1/services/secure_storage.dart';
 
 class ArticleDetailPage extends StatefulWidget {
   final Map<String, dynamic> article;
@@ -37,14 +38,25 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     final url = Uri.parse(
       '${ApiService.baseUrl}/articles/$articleId/favorite/status?user_id=$userId',
     );
+    final token = await SecureStorage.getToken();
 
     try {
-      final response = await http.get(url);
+      final headers = {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+
+      final response = await http.get(url, headers: headers);
       final data = jsonDecode(response.body);
 
-      setState(() {
-        isLoved = data['favorite'] ?? false;
-      });
+      debugPrint('Favorite status response: ${response.statusCode} - ${response.body}');
+
+      if (response.statusCode == 200) {
+        setState(() {
+          isLoved = data['favorite'] ?? false;
+        });
+        debugPrint('Favorite status loaded: $isLoved');
+      }
     } catch (e) {
       debugPrint('Fetch favorite error: $e');
     }
@@ -53,30 +65,46 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
   Future<void> toggleFavorite() async {
     final articleId = widget.article['id'];
     final url = Uri.parse('${ApiService.baseUrl}/articles/$articleId/favorite');
+    final token = await SecureStorage.getToken();
 
     try {
+      final headers = {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+
       if (isLoved) {
-        await http.delete(
+        final response = await http.delete(
           url,
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: jsonEncode({'user_id': userId}),
         );
+        
+        debugPrint('Delete favorite response: ${response.statusCode}');
 
-        setState(() {
-          isLoved = false;
-          _favoriteChanged = true;
-        });
+        if (response.statusCode == 200 || response.statusCode == 204) {
+          setState(() {
+            isLoved = false;
+            _favoriteChanged = true;
+          });
+          debugPrint('Favorite removed successfully');
+        }
       } else {
-        await http.post(
+        final response = await http.post(
           url,
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: jsonEncode({'user_id': userId}),
         );
+        
+        debugPrint('Add favorite response: ${response.statusCode}');
 
-        setState(() {
-          isLoved = true;
-          _favoriteChanged = true;
-        });
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          setState(() {
+            isLoved = true;
+            _favoriteChanged = true;
+          });
+          debugPrint('Favorite added successfully');
+        }
       }
     } catch (e) {
       debugPrint('Toggle favorite error: $e');

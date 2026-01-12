@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:layout_x1/services/api_service.dart';
+import 'package:layout_x1/services/secure_storage.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final int productId;
@@ -37,16 +38,48 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   Future<void> fetchProductDetail() async {
     final url = Uri.parse('${ApiService.baseUrl}/products/${widget.productId}');
+    final token = await SecureStorage.getToken();
 
     try {
-      final response = await http.get(url);
+      final headers = {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+
+      final response = await http.get(url, headers: headers);
       final data = jsonDecode(response.body);
 
-      if (response.statusCode == 200) {
+      debugPrint('PRODUCT STATUS: ${response.statusCode}');
+      debugPrint('PRODUCT BODY: ${response.body}');
+
+      if (response.statusCode == 200 && data['data'] != null) {
+        final productData = data['data'];
+        
+        // Handle both array and object response formats
+        Map<String, dynamic> productMap;
+        if (productData is List) {
+          if (productData.isEmpty) {
+            setState(() => isLoading = false);
+            debugPrint('Product list is empty');
+            return;
+          }
+          productMap = productData[0] as Map<String, dynamic>;
+        } else if (productData is Map) {
+          productMap = productData as Map<String, dynamic>;
+        } else {
+          setState(() => isLoading = false);
+          debugPrint('Invalid product data format');
+          return;
+        }
+
         setState(() {
-          product = data['data'];
+          product = productMap;
           isLoading = false;
         });
+        debugPrint('Product loaded: ${product!['nama']}');
+      } else {
+        setState(() => isLoading = false);
+        debugPrint('Failed to load product: ${response.statusCode}');
       }
     } catch (e) {
       debugPrint('Fetch product error: $e');
@@ -58,9 +91,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     final url = Uri.parse(
       '${ApiService.baseUrl}/products/${widget.productId}/favorite/status?user_id=$userId',
     );
+    final token = await SecureStorage.getToken();
 
     try {
-      final response = await http.get(url);
+      final headers = {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+
+      final response = await http.get(url, headers: headers);
       final data = jsonDecode(response.body);
 
       setState(() {
@@ -75,12 +114,18 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     final url = Uri.parse(
       '${ApiService.baseUrl}/products/${widget.productId}/favorite',
     );
+    final token = await SecureStorage.getToken();
 
     try {
+      final headers = {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+
       if (isLoved) {
         await http.delete(
           url,
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: jsonEncode({'user_id': userId}),
         );
 
@@ -91,7 +136,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       } else {
         await http.post(
           url,
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: jsonEncode({'user_id': userId}),
         );
 

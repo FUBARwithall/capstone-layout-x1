@@ -4,8 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'secure_storage.dart';
 
 class ApiService {
-  static const String baseUrl =
-      'http://192.168.56.1:5000/api';
+  static const String baseUrl = 'http://192.168.56.1:5000/api';
   static const String googleClientId =
       '139914337046-333vbk7mq3q47ue93tdahl74n0jvmbk7.apps.googleusercontent.com';
 
@@ -159,28 +158,22 @@ class ApiService {
   }
 
   // ================= CHATBOT API (Public - No Auth) =================
-static Future<Map<String, dynamic>> sendChatMessage({
-  required String message,
-}) async {
-  try {
-    final response = await (_client ?? http.Client()).post(
-      Uri.parse('$baseUrl/chatbot/chat'),
-      headers: _getHeaders(),  // No auth needed
-      body: jsonEncode({'message': message}),
-    );
-    
-    final data = jsonDecode(response.body);
-    return {
-      'success': response.statusCode == 200,
-      'reply': data['reply'],
-    };
-  } catch (e) {
-    return {
-      'success': false, 
-      'reply': 'Gagal terhubung ke chatbot: $e'
-    };
+  static Future<Map<String, dynamic>> sendChatMessage({
+    required String message,
+  }) async {
+    try {
+      final response = await (_client ?? http.Client()).post(
+        Uri.parse('$baseUrl/chatbot/chat'),
+        headers: _getHeaders(), // No auth needed
+        body: jsonEncode({'message': message}),
+      );
+
+      final data = jsonDecode(response.body);
+      return {'success': response.statusCode == 200, 'reply': data['reply']};
+    } catch (e) {
+      return {'success': false, 'reply': 'Gagal terhubung ke chatbot: $e'};
+    }
   }
-}
 
   // ================= ARTICLES API =================
 
@@ -220,6 +213,7 @@ static Future<Map<String, dynamic>> sendChatMessage({
     }
   }
 
+  // ================= FAVORITE ARTICLES API =================
   static Future<Map<String, dynamic>> getFavoriteArticles(int userId) async {
     try {
       final headers = await _getAuthHeaders();
@@ -278,6 +272,7 @@ static Future<Map<String, dynamic>> sendChatMessage({
     }
   }
 
+  // ================= FAVORITE PRODUCTS API =================
   static Future<Map<String, dynamic>> getFavoriteProducts(int userId) async {
     try {
       final headers = await _getAuthHeaders();
@@ -520,60 +515,49 @@ static Future<Map<String, dynamic>> sendChatMessage({
 
   // ================= REMINDER API (Authenticated) =================
 
-static Future<Map<String, dynamic>> getReminders() async {
-  try {
-    final headers = await _getAuthHeaders();
-    final response = await (_client ?? http.Client()).get(
-      Uri.parse('$baseUrl/reminders'),
-      headers: headers,
-    );
+  static Future<Map<String, dynamic>> getReminders() async {
+    try {
+      final headers = await _getAuthHeaders();
+      final response = await (_client ?? http.Client()).get(
+        Uri.parse('$baseUrl/reminders'),
+        headers: headers,
+      );
 
-    final data = jsonDecode(response.body);
+      final data = jsonDecode(response.body);
 
-    return {
-      'success': response.statusCode == 200,
-      'data': data,
-    };
-  } catch (e) {
-    return {
-      'success': false,
-      'message': 'Gagal mengambil reminder: $e',
-    };
+      return {'success': response.statusCode == 200, 'data': data};
+    } catch (e) {
+      return {'success': false, 'message': 'Gagal mengambil reminder: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> saveReminder({
+    required String type, // morning / afternoon / night
+    required int hour,
+    required int minute,
+    required bool isActive,
+  }) async {
+    try {
+      final headers = await _getAuthHeaders();
+      final response = await (_client ?? http.Client()).post(
+        Uri.parse('$baseUrl/reminders'),
+        headers: headers,
+        body: jsonEncode({
+          'type': type,
+          'hour': hour,
+          'minute': minute,
+          'is_active': isActive,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'] ?? 'Reminder tersimpan',
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Gagal menyimpan reminder: $e'};
+    }
   }
 }
-
-static Future<Map<String, dynamic>> saveReminder({
-  required String type,        // morning / afternoon / night
-  required int hour,
-  required int minute,
-  required bool isActive,
-}) async {
-  try {
-    final headers = await _getAuthHeaders();
-    final response = await (_client ?? http.Client()).post(
-      Uri.parse('$baseUrl/reminders'),
-      headers: headers,
-      body: jsonEncode({
-        'type': type,
-        'hour': hour,
-        'minute': minute,
-        'is_active': isActive,
-      }),
-    );
-
-    final data = jsonDecode(response.body);
-
-    return {
-      'success': response.statusCode == 200,
-      'message': data['message'] ?? 'Reminder tersimpan',
-    };
-  } catch (e) {
-    return {
-      'success': false,
-      'message': 'Gagal menyimpan reminder: $e',
-    };
-  }
-}
-
-}
-
