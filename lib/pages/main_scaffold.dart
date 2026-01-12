@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:layout_x1/pages/landing_page_body.dart';
 import 'package:layout_x1/pages/pantaupage.dart';
 import 'package:layout_x1/pages/pengaturan.dart';
-import 'package:layout_x1/pages/reminder.dart';
+import 'package:layout_x1/pages/reminder/reminder.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});

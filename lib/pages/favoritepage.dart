@@ -48,7 +48,6 @@ class _FavoritePageState extends State<FavoritePage> {
         _favoriteProducts = products['data'] ?? [];
         _isLoading = false;
       });
-
     } catch (e) {
       debugPrint('Favorite error: $e');
 
@@ -195,8 +194,7 @@ class _FavoritePageState extends State<FavoritePage> {
                                       ),
                                     ),
                                   );
-
-                                  // 🔁 refresh kalau favorite berubah
+                                  
                                   if (result != null &&
                                       result['changed'] == true) {
                                     _loadUserAndFavorites();

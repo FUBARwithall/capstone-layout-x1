@@ -5,7 +5,7 @@ import 'secure_storage.dart';
 
 class ApiService {
   static const String baseUrl =
-      'http://192.168.100.1:5000/api';
+      'http://192.168.56.1:5000/api';
   static const String googleClientId =
       '139914337046-333vbk7mq3q47ue93tdahl74n0jvmbk7.apps.googleusercontent.com';
 
@@ -517,4 +517,63 @@ static Future<Map<String, dynamic>> sendChatMessage({
       return {'success': false, 'message': 'Error: $e'};
     }
   }
+
+  // ================= REMINDER API (Authenticated) =================
+
+static Future<Map<String, dynamic>> getReminders() async {
+  try {
+    final headers = await _getAuthHeaders();
+    final response = await (_client ?? http.Client()).get(
+      Uri.parse('$baseUrl/reminders'),
+      headers: headers,
+    );
+
+    final data = jsonDecode(response.body);
+
+    return {
+      'success': response.statusCode == 200,
+      'data': data,
+    };
+  } catch (e) {
+    return {
+      'success': false,
+      'message': 'Gagal mengambil reminder: $e',
+    };
+  }
 }
+
+static Future<Map<String, dynamic>> saveReminder({
+  required String type,        // morning / afternoon / night
+  required int hour,
+  required int minute,
+  required bool isActive,
+}) async {
+  try {
+    final headers = await _getAuthHeaders();
+    final response = await (_client ?? http.Client()).post(
+      Uri.parse('$baseUrl/reminders'),
+      headers: headers,
+      body: jsonEncode({
+        'type': type,
+        'hour': hour,
+        'minute': minute,
+        'is_active': isActive,
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+
+    return {
+      'success': response.statusCode == 200,
+      'message': data['message'] ?? 'Reminder tersimpan',
+    };
+  } catch (e) {
+    return {
+      'success': false,
+      'message': 'Gagal menyimpan reminder: $e',
+    };
+  }
+}
+
+}
+
