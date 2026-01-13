@@ -560,4 +560,85 @@ class ApiService {
       return {'success': false, 'message': 'Gagal menyimpan reminder: $e'};
     }
   }
+
+// ================= PRODUCT COMMENTS API =================
+static Future<Map<String, dynamic>> getProductComments(int productId) async {
+  try {
+    final headers = await _getAuthHeaders();
+    final response = await (_client ?? http.Client()).get(
+      Uri.parse('$baseUrl/products/$productId/comments'),
+      headers: headers,
+    );
+
+    final data = jsonDecode(response.body);
+
+    return {
+      'success': response.statusCode == 200,
+      'data': data['data'],
+    };
+  } catch (e) {
+    return {
+      'success': false,
+      'message': 'Gagal ambil komentar: $e',
+    };
+  }
 }
+
+
+static Future<Map<String, dynamic>> addProductComment({
+  required int productId,
+  required String comment,
+}) async {
+  try {
+    final headers = await _getAuthHeaders();
+
+    final response = await (_client ?? http.Client()).post(
+      Uri.parse('$baseUrl/products/$productId/comments'),
+      headers: headers,
+      body: jsonEncode({
+        'comment': comment,
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+
+    return {
+      'success': response.statusCode == 201,
+      'message': data['message'] ?? 'Komentar berhasil ditambahkan',
+    };
+  } catch (e) {
+    return {
+      'success': false,
+      'message': 'Gagal mengirim komentar: $e',
+    };
+  }
+}
+
+static Future<Map<String, dynamic>> deleteProductComment({
+  required int productId,
+  required int commentId,
+}) async {
+  try {
+    final headers = await _getAuthHeaders();
+
+    final response = await (_client ?? http.Client()).delete(
+      Uri.parse('$baseUrl/products/$productId/comments/$commentId'),
+      headers: headers,
+    );
+
+    final data = jsonDecode(response.body);
+
+    return {
+      'success': response.statusCode == 200,
+      'message': data['message'] ?? 'Komentar berhasil dihapus',
+    };
+  } catch (e) {
+    return {
+      'success': false,
+      'message': 'Gagal menghapus komentar: $e',
+    };
+  }
+}
+
+}
+
