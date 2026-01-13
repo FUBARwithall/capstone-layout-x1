@@ -4,8 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'secure_storage.dart';
 
 class ApiService {
-  static const String baseUrl =
-      'https://propagatory-jeremiah-fully.ngrok-free.dev/api';
+  static const String baseUrl = 'http://192.168.56.1:5000/api';
   static const String googleClientId =
       '139914337046-333vbk7mq3q47ue93tdahl74n0jvmbk7.apps.googleusercontent.com';
 
@@ -159,28 +158,22 @@ class ApiService {
   }
 
   // ================= CHATBOT API (Public - No Auth) =================
-static Future<Map<String, dynamic>> sendChatMessage({
-  required String message,
-}) async {
-  try {
-    final response = await (_client ?? http.Client()).post(
-      Uri.parse('$baseUrl/chatbot/chat'),
-      headers: _getHeaders(),  // No auth needed
-      body: jsonEncode({'message': message}),
-    );
-    
-    final data = jsonDecode(response.body);
-    return {
-      'success': response.statusCode == 200,
-      'reply': data['reply'],
-    };
-  } catch (e) {
-    return {
-      'success': false, 
-      'reply': 'Gagal terhubung ke chatbot: $e'
-    };
+  static Future<Map<String, dynamic>> sendChatMessage({
+    required String message,
+  }) async {
+    try {
+      final response = await (_client ?? http.Client()).post(
+        Uri.parse('$baseUrl/chatbot/chat'),
+        headers: _getHeaders(), // No auth needed
+        body: jsonEncode({'message': message}),
+      );
+
+      final data = jsonDecode(response.body);
+      return {'success': response.statusCode == 200, 'reply': data['reply']};
+    } catch (e) {
+      return {'success': false, 'reply': 'Gagal terhubung ke chatbot: $e'};
+    }
   }
-}
 
   // ================= ARTICLES API =================
 
@@ -220,6 +213,7 @@ static Future<Map<String, dynamic>> sendChatMessage({
     }
   }
 
+  // ================= FAVORITE ARTICLES API =================
   static Future<Map<String, dynamic>> getFavoriteArticles(int userId) async {
     try {
       final headers = await _getAuthHeaders();
@@ -298,6 +292,7 @@ static Future<Map<String, dynamic>> sendChatMessage({
     }
   }
 
+  // ================= FAVORITE PRODUCTS API =================
   static Future<Map<String, dynamic>> getFavoriteProducts(int userId) async {
     try {
       final headers = await _getAuthHeaders();
@@ -540,11 +535,58 @@ static Future<Map<String, dynamic>> sendChatMessage({
 
   // ================= REMINDER API (Authenticated) =================
 
-static Future<Map<String, dynamic>> getReminders() async {
+  static Future<Map<String, dynamic>> getReminders() async {
+    try {
+      final headers = await _getAuthHeaders();
+      final response = await (_client ?? http.Client()).get(
+        Uri.parse('$baseUrl/reminders'),
+        headers: headers,
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {'success': response.statusCode == 200, 'data': data};
+    } catch (e) {
+      return {'success': false, 'message': 'Gagal mengambil reminder: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> saveReminder({
+    required String type, // morning / afternoon / night
+    required int hour,
+    required int minute,
+    required bool isActive,
+  }) async {
+    try {
+      final headers = await _getAuthHeaders();
+      final response = await (_client ?? http.Client()).post(
+        Uri.parse('$baseUrl/reminders'),
+        headers: headers,
+        body: jsonEncode({
+          'type': type,
+          'hour': hour,
+          'minute': minute,
+          'is_active': isActive,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'] ?? 'Reminder tersimpan',
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Gagal menyimpan reminder: $e'};
+    }
+  }
+
+// ================= PRODUCT COMMENTS API =================
+static Future<Map<String, dynamic>> getProductComments(int productId) async {
   try {
     final headers = await _getAuthHeaders();
     final response = await (_client ?? http.Client()).get(
-      Uri.parse('$baseUrl/reminders'),
+      Uri.parse('$baseUrl/products/$productId/comments'),
       headers: headers,
     );
 
@@ -552,45 +594,70 @@ static Future<Map<String, dynamic>> getReminders() async {
 
     return {
       'success': response.statusCode == 200,
-      'data': data,
+      'data': data['data'],
     };
   } catch (e) {
     return {
       'success': false,
-      'message': 'Gagal mengambil reminder: $e',
+      'message': 'Gagal ambil komentar: $e',
     };
   }
 }
 
-static Future<Map<String, dynamic>> saveReminder({
-  required String type,        // morning / afternoon / night
-  required int hour,
-  required int minute,
-  required bool isActive,
+
+static Future<Map<String, dynamic>> addProductComment({
+  required int productId,
+  required String comment,
+  int? parentId,
 }) async {
   try {
     final headers = await _getAuthHeaders();
+
     final response = await (_client ?? http.Client()).post(
-      Uri.parse('$baseUrl/reminders'),
+      Uri.parse('$baseUrl/products/$productId/comments'),
       headers: headers,
       body: jsonEncode({
-        'type': type,
-        'hour': hour,
-        'minute': minute,
-        'is_active': isActive,
+        'comment': comment,
+        if (parentId != null) 'parent_id': parentId,
       }),
     );
 
     final data = jsonDecode(response.body);
 
     return {
-      'success': response.statusCode == 200,
-      'message': data['message'] ?? 'Reminder tersimpan',
+      'success': response.statusCode == 201,
+      'message': data['message'] ?? 'Komentar berhasil ditambahkan',
     };
   } catch (e) {
     return {
       'success': false,
-      'message': 'Gagal menyimpan reminder: $e',
+      'message': 'Gagal mengirim komentar: $e',
+    };
+  }
+}
+
+static Future<Map<String, dynamic>> deleteProductComment({
+  required int productId,
+  required int commentId,
+}) async {
+  try {
+    final headers = await _getAuthHeaders();
+
+    final response = await (_client ?? http.Client()).delete(
+      Uri.parse('$baseUrl/products/$productId/comments/$commentId'),
+      headers: headers,
+    );
+
+    final data = jsonDecode(response.body);
+
+    return {
+      'success': response.statusCode == 200,
+      'message': data['message'] ?? 'Komentar berhasil dihapus',
+    };
+  } catch (e) {
+    return {
+      'success': false,
+      'message': 'Gagal menghapus komentar: $e',
     };
   }
 }

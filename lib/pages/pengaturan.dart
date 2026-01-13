@@ -147,51 +147,6 @@ class _PengaturanState extends State<Pengaturan> {
                   onTap: () {},
                 ),
                 ListTile(
-                  leading: const Icon(Icons.language),
-                  title: const Text("Bahasa Aplikasi"),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          print("Bahasa: Indonesia");
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueAccent,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          minimumSize: const Size(0, 32),
-                        ),
-                        child: const Text(
-                          "ID",
-                          style: TextStyle(fontSize: 12, color: Colors.white),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: () {
-                          print("Bahasa: English");
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.grey,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          minimumSize: const Size(0, 32),
-                        ),
-                        child: const Text(
-                          "EN",
-                          style: TextStyle(fontSize: 12, color: Colors.white),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                ListTile(
                   leading: const Icon(Icons.access_alarm_rounded),
                   title: const Text("History"),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
