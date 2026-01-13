@@ -25,6 +25,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   bool _favoriteChanged = false;
   late int userId;
   List<Map<String, dynamic>> comments = [];
+  int? replyingToCommentId;  // Track which comment we're replying to
+  String? replyingToUserName;  // Track parent comment user name
 
   // Get base URL for uploads (without /api suffix)
   String get baseUrl => ApiService.baseUrl.replaceAll('/api', '');
@@ -39,6 +41,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   final TextEditingController _commentController = TextEditingController();
+  final FocusNode _commentFocusNode = FocusNode();
 
   Future<void> fetchProductDetail() async {
     final url = Uri.parse('${ApiService.baseUrl}/products/${widget.productId}');
@@ -164,6 +167,9 @@ Future<void> fetchComments() async {
     setState(() {
       comments = List<Map<String, dynamic>>.from(result['data']);
       debugPrint('Comments loaded: ${comments.length}');
+      for (var c in comments) {
+        debugPrint('Comment: ${c['user_name']} - Replies: ${c['replies']}');
+      }
     });
   } else {
     debugPrint('Gagal ambil komentar: ${result['message']}');
@@ -177,6 +183,7 @@ Future<void> addComment(String commentText) async {
     final result = await ApiService.addProductComment(
       productId: widget.productId,
       comment: commentText,
+      parentId: replyingToCommentId,
     );
 
     if (result['success'] == true) {
@@ -184,6 +191,10 @@ Future<void> addComment(String commentText) async {
       // Refresh comments list
       await fetchComments();
       _commentController.clear();
+      setState(() {
+        replyingToCommentId = null;
+        replyingToUserName = null;
+      });
     } else {
       debugPrint('Gagal tambah komentar: ${result['message']}');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -197,6 +208,13 @@ Future<void> addComment(String commentText) async {
     );
   }
 }
+
+@override
+  void dispose() {
+    _commentController.dispose();
+    _commentFocusNode.dispose();
+    super.dispose();
+  }
 
 Future<void> deleteComment(int commentId) async {
   try {
@@ -224,6 +242,139 @@ Future<void> deleteComment(int commentId) async {
       const SnackBar(content: Text('Terjadi kesalahan saat menghapus')),
     );
   }
+}
+
+// Build nested replies recursively
+Widget _buildReplyTree(Map<String, dynamic> comment, int depth) {
+  final isOwner = comment['user_id'] == userId;
+  final replies = comment['replies'] ?? [];
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Container(
+        margin: EdgeInsets.only(
+          left: depth == 0 ? 0 : 16.0,  // Only first level indent
+          bottom: 12,
+        ),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: depth == 0 ? Colors.grey.shade100 : Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(10),
+          border: depth > 0
+              ? Border(
+                  left: BorderSide(
+                    color: const Color(0xFF0066CC),
+                    width: 3,
+                  ),
+                )
+              : null,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    comment['parent_user_name'] != null
+                        ? '${comment['user_name']} ▶ ${comment['parent_user_name']}'
+                        : comment['user_name'] ?? '-',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF0066CC),
+                      fontSize: depth == 0 ? 14 : 12,
+                    ),
+                  ),
+                ),
+                if (isOwner)
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    iconSize: depth == 0 ? 18 : 14,
+                    color: Colors.red,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Hapus Komentar'),
+                          content: const Text('Apakah Anda yakin?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Batal'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                deleteComment(comment['id']);
+                              },
+                              child: const Text('Hapus',
+                                  style: TextStyle(color: Colors.red)),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              comment['comment'] ?? '',
+              style: TextStyle(fontSize: depth == 0 ? 14 : 12),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: Text(
+                    comment['created_at'] ?? '',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton.icon(
+                icon: const Icon(Icons.reply, size: 14),
+                label: const Text('Balas', style: TextStyle(fontSize: 12)),
+                style: TextButton.styleFrom(
+                  alignment: Alignment.centerLeft,
+                  padding: EdgeInsets.zero,
+                ),
+                onPressed: () {
+                  setState(() {
+                    replyingToCommentId = comment['id'];
+                    replyingToUserName = comment['user_name'];
+                  });
+                  _commentFocusNode.requestFocus();
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      // Recursively build nested replies - all at same indent level
+      if (replies.isNotEmpty)
+        Padding(
+          padding: EdgeInsets.only(left: depth == 0 ? 16.0 : 0),
+          child: Column(
+            children: replies
+                .map<Widget>((reply) => _buildReplyTree(reply, depth + 1))
+                .toList(),
+          ),
+        ),
+    ],
+  );
 }
 
   @override
@@ -386,79 +537,66 @@ Future<void> deleteComment(int commentId) async {
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: comments.isNotEmpty ? comments.length : 0,
+                        itemCount: comments.length,
                         itemBuilder: (context, index) {
                           final comment = comments[index];
-                          final isOwner = comment['user_id'] == userId;
-                          
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      comment['user_name'] ?? '-',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF0066CC),
-                                      ),
-                                    ),
-                                    if (isOwner)
-                                      IconButton(
-                                        icon: const Icon(Icons.delete, size: 18),
-                                        color: Colors.red,
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                        onPressed: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              title: const Text('Hapus Komentar'),
-                                              content: const Text('Apakah Anda yakin ingin menghapus komentar ini?'),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () => Navigator.pop(context),
-                                                  child: const Text('Batal'),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(context);
-                                                    deleteComment(comment['id']);
-                                                  },
-                                                  child: const Text('Hapus', style: TextStyle(color: Colors.red)),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                  ],
-                                ),
-                                const SizedBox(height: 6),
-                                Text(comment['comment'] ?? ''),
-                                const SizedBox(height: 6),
-                                Text(
-                                  comment['created_at'] ?? '',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
+                          return _buildReplyTree(comment, 0);
                         },
                       ),
 
                     const SizedBox(height: 12),
+
+                    // REPLY INDICATOR
+                    if (replyingToCommentId != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFF0066CC)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                const Text(
+                                  'Membalas: ',
+                                  style: TextStyle(
+                                    color: Color(0xFF0066CC),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                // Icon(
+                                //   Icons.chevron_right,
+                                //   color: const Color(0xFF0066CC),
+                                //   size: 20,
+                                // ),
+                                Text(
+                                  replyingToUserName ?? '',
+                                  style: const TextStyle(
+                                    color: Color(0xFF0066CC),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  replyingToCommentId = null;
+                                  replyingToUserName = null;
+                                });
+                                _commentController.clear();
+                              },
+                              icon: const Icon(Icons.close, size: 18),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ],
+                        ),
+                      ),
 
                     // INPUT KOMENTAR
                     Container(
@@ -472,6 +610,7 @@ Future<void> deleteComment(int commentId) async {
                           Expanded(
                             child: TextField(
                               controller: _commentController,
+                              focusNode: _commentFocusNode,
                               minLines: 1,
                               maxLines: 3,
                               decoration: const InputDecoration(

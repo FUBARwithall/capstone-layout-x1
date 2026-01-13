@@ -588,6 +588,7 @@ static Future<Map<String, dynamic>> getProductComments(int productId) async {
 static Future<Map<String, dynamic>> addProductComment({
   required int productId,
   required String comment,
+  int? parentId,
 }) async {
   try {
     final headers = await _getAuthHeaders();
@@ -597,6 +598,7 @@ static Future<Map<String, dynamic>> addProductComment({
       headers: headers,
       body: jsonEncode({
         'comment': comment,
+        if (parentId != null) 'parent_id': parentId,
       }),
     );
 
