@@ -5,7 +5,7 @@ import 'secure_storage.dart';
 
 class ApiService {
   static const String baseUrl =
-      'http://192.168.56.1:5000/api';
+      'https://propagatory-jeremiah-fully.ngrok-free.dev/api';
   static const String googleClientId =
       '139914337046-333vbk7mq3q47ue93tdahl74n0jvmbk7.apps.googleusercontent.com';
 
@@ -259,6 +259,26 @@ static Future<Map<String, dynamic>> sendChatMessage({
       return {'success': false, 'message': 'Gagal terhubung ke server: $e'};
     }
   }
+
+  /// Get products by category (for detection recommendations)
+  static Future<Map<String, dynamic>> getProductsByCategory(String category) async {
+    try {
+      final headers = await _getAuthHeaders();
+      final response = await (_client ?? http.Client()).get(
+        Uri.parse('$baseUrl/products/by-category?category=${Uri.encodeComponent(category)}'),
+        headers: headers,
+      );
+      final data = jsonDecode(response.body);
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'] ?? 'Success',
+        'data': data['data'] ?? [],
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Gagal terhubung ke server: $e', 'data': []};
+    }
+  }
+
 
   static Future<Map<String, dynamic>> getProduct(int productId) async {
     try {
@@ -574,6 +594,75 @@ static Future<Map<String, dynamic>> saveReminder({
     };
   }
 }
+
+  // ================= FACE DETECTION API (Authenticated) =================
+
+  /// Detect skin type and problem from an image file
+  static Future<Map<String, dynamic>> detectFace({
+    required String imagePath,
+  }) async {
+    try {
+      final token = await SecureStorage.getToken();
+      
+      final uri = Uri.parse('$baseUrl/detection/detect');
+      final request = http.MultipartRequest('POST', uri);
+      
+      // Add auth header
+      if (token != null) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+      
+      // Add image file
+      request.files.add(await http.MultipartFile.fromPath('file', imagePath));
+      
+      // Send request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      final data = jsonDecode(response.body);
+      
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'data': data,
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Detection failed',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Gagal mendeteksi wajah: $e',
+      };
+    }
+  }
+
+  /// Get detection history for the authenticated user
+  static Future<Map<String, dynamic>> getDetectionHistory() async {
+    try {
+      final headers = await _getAuthHeaders();
+      final response = await (_client ?? http.Client()).get(
+        Uri.parse('$baseUrl/detection/history'),
+        headers: headers,
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200,
+        'data': data['history'] ?? [],
+        'message': data['message'],
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Gagal mengambil riwayat deteksi: $e',
+      };
+    }
+  }
 
 }
 

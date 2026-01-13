@@ -164,7 +164,8 @@ class _LandingPageBodyState extends State<LandingPageBody> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 2,
+        elevation: 0,
+        centerTitle: false,
         title: _isLoadingUser
             ? const SizedBox(
                 width: 20,
@@ -223,16 +224,31 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
-                            Icons.face,
+                            Icons.face_retouching_natural_outlined,
                             color: Color(0xFF0066CC),
                             size: 28,
                           ),
                         ),
                         const SizedBox(width: 16),
-                        const Expanded(
-                          child: Text(
-                            'Deteksi Kulit Wajah\nAnalisis kondisi kulit wajah dengan AI.',
-                            style: TextStyle(fontSize: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Deteksi Kulit Wajah',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Analisis kondisi kulit wajah dengan AI.',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -263,16 +279,31 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
-                            Icons.accessibility_new,
+                            Icons.accessibility,
                             color: Color(0xFF0066CC),
                             size: 28,
                           ),
                         ),
                         const SizedBox(width: 16),
-                        const Expanded(
-                          child: Text(
-                            'Deteksi Kulit Tubuh\nAnalisis kondisi kulit pada tubuh menggunakan AI.',
-                            style: TextStyle(fontSize: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Deteksi Kulit Tubuh',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Analisis kondisi kulit pada tubuh menggunakan AI.',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -285,13 +316,18 @@ class _LandingPageBodyState extends State<LandingPageBody> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Artikel & Berita Terkini',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  const Expanded(
+                    child: Text(
+                      'Artikel & Berita Terkini',
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    ),
                   ),
                   TextButton(
                     onPressed: _userId == null ? null : _navigateToArticles,
-                    child: const Text('Lihat Semua'),
+                    child: const Text(
+                      'Lihat Semua',
+                      style: TextStyle(color: Color(0xFF0066CC)),
+                    ),
                   ),
                 ],
               ),
@@ -387,9 +423,11 @@ class _LandingPageBodyState extends State<LandingPageBody> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Rekomendasi Produk',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  const Expanded(
+                    child: Text(
+                      'Rekomendasi Produk',
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    ),
                   ),
                   TextButton(
                     onPressed: _navigateToProducts,
