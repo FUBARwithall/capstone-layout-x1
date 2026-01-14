@@ -75,11 +75,11 @@ class DrinkLog {
 
   class DailyHistory {
     final String date;
-    final double skinScore; // Ini diambil dari skin_load_score
+    final double skinScore;
     final double sleepHours;
-    final String foods; // String gabungan (misal: "Nasi, Ayam")
+    final String foods;
     final String drinks;
-    final String status; // AMAN, WASPADA, OVER_LIMIT
+    final String status;
     final String triggers;
 
     DailyHistory({
@@ -913,7 +913,7 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
                   ),
                   const SizedBox(height: 20),
                   SizedBox(
-                    height: 200, // Increased from 150 to 200
+                    height: 200,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -927,12 +927,10 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
                                 ? Colors.orange
                                 : Colors.green;
 
-                            // Parse tanggal pendek (misal: "12")
                             String shortDate = data.date.split('-').last;
 
-                            // Normalize height calculation to avoid overflow if score > 10
-                            double maxExpectedScore = 15.0; // Assume max load score is around this
-                            double barHeight = (data.skinScore / maxExpectedScore) * 120; // 120 is max bar height
+                            double maxExpectedScore = 15.0;
+                            double barHeight = (data.skinScore / maxExpectedScore) * 120;
 
                             return Column(
                               mainAxisAlignment: MainAxisAlignment.end,
@@ -945,9 +943,8 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                // Bar Batang
                                 Container(
-                                  width: 24, // Slightly wider
+                                  width: 24,
                                   height: barHeight,
                                   decoration: BoxDecoration(
                                     color: barColor,
