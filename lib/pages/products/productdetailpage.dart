@@ -7,11 +7,13 @@ import 'package:layout_x1/services/secure_storage.dart';
 class ProductDetailPage extends StatefulWidget {
   final int productId;
   final int userId;
+  final String? returnTo; // 'faceDetection' or null (default to home)
 
   const ProductDetailPage({
     super.key,
     required this.productId,
     required this.userId,
+    this.returnTo,
   });
 
   @override
@@ -407,7 +409,12 @@ Widget _buildReplyTree(Map<String, dynamic> comment, int depth) {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              Navigator.pop(context, {'changed': _favoriteChanged});
+              // Return to face detection if coming from there, otherwise just pop
+              if (widget.returnTo == 'faceDetection') {
+                Navigator.of(context).pop({'changed': _favoriteChanged});
+              } else {
+                Navigator.pop(context, {'changed': _favoriteChanged});
+              }
             },
           ),
           actions: [

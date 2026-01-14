@@ -4,7 +4,10 @@ import 'package:flutter/foundation.dart';
 import 'secure_storage.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://propagatory-jeremiah-fully.ngrok-free.dev/api';
+  // static const String baseUrl = 'http://192.168.56.1:5000/api';
+  static const String baseUrl =
+      'https://nonrelativistic-amalia-unconflictingly.ngrok-free.dev/api';
+
   static const String googleClientId =
       '139914337046-333vbk7mq3q47ue93tdahl74n0jvmbk7.apps.googleusercontent.com';
 
@@ -255,11 +258,15 @@ class ApiService {
   }
 
   /// Get products by category (for detection recommendations)
-  static Future<Map<String, dynamic>> getProductsByCategory(String category) async {
+  static Future<Map<String, dynamic>> getProductsByCategory(
+    String category,
+  ) async {
     try {
       final headers = await _getAuthHeaders();
       final response = await (_client ?? http.Client()).get(
-        Uri.parse('$baseUrl/products/by-category?category=${Uri.encodeComponent(category)}'),
+        Uri.parse(
+          '$baseUrl/products/by-category?category=${Uri.encodeComponent(category)}',
+        ),
         headers: headers,
       );
       final data = jsonDecode(response.body);
@@ -269,10 +276,13 @@ class ApiService {
         'data': data['data'] ?? [],
       };
     } catch (e) {
-      return {'success': false, 'message': 'Gagal terhubung ke server: $e', 'data': []};
+      return {
+        'success': false,
+        'message': 'Gagal terhubung ke server: $e',
+        'data': [],
+      };
     }
   }
-
 
   static Future<Map<String, dynamic>> getProduct(int productId) async {
     try {
@@ -581,86 +591,73 @@ class ApiService {
     }
   }
 
-// ================= PRODUCT COMMENTS API =================
-static Future<Map<String, dynamic>> getProductComments(int productId) async {
-  try {
-    final headers = await _getAuthHeaders();
-    final response = await (_client ?? http.Client()).get(
-      Uri.parse('$baseUrl/products/$productId/comments'),
-      headers: headers,
-    );
+  // ================= PRODUCT COMMENTS API =================
+  static Future<Map<String, dynamic>> getProductComments(int productId) async {
+    try {
+      final headers = await _getAuthHeaders();
+      final response = await (_client ?? http.Client()).get(
+        Uri.parse('$baseUrl/products/$productId/comments'),
+        headers: headers,
+      );
 
-    final data = jsonDecode(response.body);
+      final data = jsonDecode(response.body);
 
-    return {
-      'success': response.statusCode == 200,
-      'data': data['data'],
-    };
-  } catch (e) {
-    return {
-      'success': false,
-      'message': 'Gagal ambil komentar: $e',
-    };
+      return {'success': response.statusCode == 200, 'data': data['data']};
+    } catch (e) {
+      return {'success': false, 'message': 'Gagal ambil komentar: $e'};
+    }
   }
-}
 
+  static Future<Map<String, dynamic>> addProductComment({
+    required int productId,
+    required String comment,
+    int? parentId,
+  }) async {
+    try {
+      final headers = await _getAuthHeaders();
 
-static Future<Map<String, dynamic>> addProductComment({
-  required int productId,
-  required String comment,
-  int? parentId,
-}) async {
-  try {
-    final headers = await _getAuthHeaders();
+      final response = await (_client ?? http.Client()).post(
+        Uri.parse('$baseUrl/products/$productId/comments'),
+        headers: headers,
+        body: jsonEncode({
+          'comment': comment,
+          if (parentId != null) 'parent_id': parentId,
+        }),
+      );
 
-    final response = await (_client ?? http.Client()).post(
-      Uri.parse('$baseUrl/products/$productId/comments'),
-      headers: headers,
-      body: jsonEncode({
-        'comment': comment,
-        if (parentId != null) 'parent_id': parentId,
-      }),
-    );
+      final data = jsonDecode(response.body);
 
-    final data = jsonDecode(response.body);
-
-    return {
-      'success': response.statusCode == 201,
-      'message': data['message'] ?? 'Komentar berhasil ditambahkan',
-    };
-  } catch (e) {
-    return {
-      'success': false,
-      'message': 'Gagal mengirim komentar: $e',
-    };
+      return {
+        'success': response.statusCode == 201,
+        'message': data['message'] ?? 'Komentar berhasil ditambahkan',
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Gagal mengirim komentar: $e'};
+    }
   }
-}
 
-static Future<Map<String, dynamic>> deleteProductComment({
-  required int productId,
-  required int commentId,
-}) async {
-  try {
-    final headers = await _getAuthHeaders();
+  static Future<Map<String, dynamic>> deleteProductComment({
+    required int productId,
+    required int commentId,
+  }) async {
+    try {
+      final headers = await _getAuthHeaders();
 
-    final response = await (_client ?? http.Client()).delete(
-      Uri.parse('$baseUrl/products/$productId/comments/$commentId'),
-      headers: headers,
-    );
+      final response = await (_client ?? http.Client()).delete(
+        Uri.parse('$baseUrl/products/$productId/comments/$commentId'),
+        headers: headers,
+      );
 
-    final data = jsonDecode(response.body);
+      final data = jsonDecode(response.body);
 
-    return {
-      'success': response.statusCode == 200,
-      'message': data['message'] ?? 'Komentar berhasil dihapus',
-    };
-  } catch (e) {
-    return {
-      'success': false,
-      'message': 'Gagal menghapus komentar: $e',
-    };
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'] ?? 'Komentar berhasil dihapus',
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Gagal menghapus komentar: $e'};
+    }
   }
-}
 
   // ================= FACE DETECTION API (Authenticated) =================
 
@@ -670,38 +667,35 @@ static Future<Map<String, dynamic>> deleteProductComment({
   }) async {
     try {
       final token = await SecureStorage.getToken();
-      
+
       debugPrint('🌐 API URL: $baseUrl/detection/detect');
       debugPrint('🔑 Token available: ${token != null}');
       debugPrint('📁 Image path: $imagePath');
-      
+
       final uri = Uri.parse('$baseUrl/detection/detect');
       final request = http.MultipartRequest('POST', uri);
-      
+
       // Add auth header
       if (token != null) {
         request.headers['Authorization'] = 'Bearer $token';
       }
-      
+
       // Add image file
       request.files.add(await http.MultipartFile.fromPath('file', imagePath));
-      
+
       debugPrint('📤 Sending request...');
-      
+
       // Send request
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-      
+
       debugPrint('📥 Status Code: ${response.statusCode}');
       debugPrint('📥 Response Body: ${response.body}');
-      
+
       final data = jsonDecode(response.body);
-      
+
       if (response.statusCode == 200) {
-        return {
-          'success': true,
-          'data': data,
-        };
+        return {'success': true, 'data': data};
       } else {
         return {
           'success': false,
@@ -711,34 +705,95 @@ static Future<Map<String, dynamic>> deleteProductComment({
     } catch (e, stackTrace) {
       debugPrint('❌ detectFace Error: $e');
       debugPrint('📚 Stack: $stackTrace');
-      return {
-        'success': false,
-        'message': 'Gagal mendeteksi wajah: $e',
-      };
+      return {'success': false, 'message': 'Gagal mendeteksi wajah: $e'};
     }
   }
+  // ================= HISTORY API =================
 
-  /// Get detection history for the authenticated user
-  static Future<Map<String, dynamic>> getDetectionHistory() async {
-    try {
-      final headers = await _getAuthHeaders();
-      final response = await (_client ?? http.Client()).get(
-        Uri.parse('$baseUrl/detection/history'),
-        headers: headers,
-      );
+/// Get detection / skin analysis history
+static Future<Map<String, dynamic>> getHistory() async {
+  try {
+    final headers = await _getAuthHeaders();
+    final url = Uri.parse('$baseUrl/history');
 
+    final response = await (_client ?? http.Client()).get(
+      url,
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-
       return {
-        'success': response.statusCode == 200,
-        'data': data['history'] ?? [],
-        'message': data['message'],
-      };
-    } catch (e) {
-      return {
-        'success': false,
-        'message': 'Gagal mengambil riwayat deteksi: $e',
+        'success': true,
+        'history': data['history'] ?? [],
       };
     }
+
+    return {
+      'success': false,
+      'history': [],
+      'message': 'HTTP ${response.statusCode}',
+    };
+  } catch (e) {
+    return {
+      'success': false,
+      'history': [],
+      'message': e.toString(),
+    };
   }
+}
+
+/// Get history detail (ID = STRING)
+static Future<Map<String, dynamic>> getHistoryDetail(String analysisId) async {
+  try {
+    final headers = await _getAuthHeaders();
+    final url = Uri.parse('$baseUrl/history/$analysisId');
+
+    final response = await (_client ?? http.Client()).get(
+      url,
+      headers: headers,
+    );
+
+    final data = jsonDecode(response.body);
+
+    return {
+      'success': response.statusCode == 200,
+      'data': data['data'],
+      'message': data['message'],
+    };
+  } catch (e) {
+    return {
+      'success': false,
+      'message': e.toString(),
+    };
+  }
+}
+
+/// Delete history (ID = STRING)
+static Future<Map<String, dynamic>> deleteHistory(String analysisId) async {
+  try {
+    final headers = await _getAuthHeaders();
+    final url = Uri.parse('$baseUrl/history/$analysisId');
+
+    final response = await (_client ?? http.Client()).delete(
+      url,
+      headers: headers,
+    );
+
+    final data = jsonDecode(response.body);
+
+    return {
+      'success': response.statusCode == 200,
+      'message': data['message'],
+    };
+  } catch (e) {
+    return {
+      'success': false,
+      'message': e.toString(),
+    };
+  }
+}
+
+
+
 }

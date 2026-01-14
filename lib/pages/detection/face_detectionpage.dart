@@ -2,7 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:layout_x1/pages/pantaupage.dart';
+import 'package:layout_x1/pages/products/productdetailpage.dart';
 import 'package:layout_x1/services/api_service.dart';
+import 'package:layout_x1/services/user_preferences.dart';
 
 class FaceDetectionpage extends StatefulWidget {
   const FaceDetectionpage({super.key});
@@ -16,12 +18,29 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
   bool showResult = false;
   bool isLoading = false;
   final ImagePicker _picker = ImagePicker();
+  int? userId;
 
   // Detection result from API
   Map<String, dynamic>? detectionData;
-  
+
   // Recommended products from database
   List<dynamic> recommendedProducts = [];
+
+  String get imageBaseUrl => ApiService.baseUrl.replaceFirst('/api', '');
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserId();
+  }
+
+  Future<void> _loadUserId() async {
+    final id = await UserPreferences.getUserId();
+    debugPrint('📱 Loaded userId: $id');
+    setState(() {
+      userId = id;
+    });
+  }
 
   // Function to pick image from gallery
   Future<void> _pickImageFromGallery() async {
@@ -125,28 +144,32 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
       debugPrint('📁 Image path: ${uploadedImage!.path}');
       debugPrint('📊 File exists: ${uploadedImage!.existsSync()}');
       debugPrint('📏 File size: ${uploadedImage!.lengthSync()} bytes');
-      
-      final result = await ApiService.detectFace(imagePath: uploadedImage!.path);
-      
+
+      final result = await ApiService.detectFace(
+        imagePath: uploadedImage!.path,
+      );
+
       debugPrint('📡 API Response: $result');
 
       if (mounted) {
         if (result['success']) {
           final data = result['data'];
           debugPrint('✅ Detection success: $data');
-          
+
           final skinProblem = data['skin_problem_analysis']?['result'] ?? '';
-          
+
           // Fetch product recommendations based on detected skin problem
           List<dynamic> products = [];
           if (skinProblem.isNotEmpty) {
             debugPrint('🛒 Fetching products for: $skinProblem');
-            final productResult = await ApiService.getProductsByCategory(skinProblem);
+            final productResult = await ApiService.getProductsByCategory(
+              skinProblem,
+            );
             if (productResult['success']) {
               products = productResult['data'] ?? [];
             }
           }
-          
+
           setState(() {
             detectionData = data;
             recommendedProducts = products;
@@ -174,10 +197,7 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
           isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -412,10 +432,7 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
               padding: const EdgeInsets.only(top: 8),
               child: Text(
                 'Dianalisis pada: ${_formatTimestamp(timestamp)}',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF888888),
-                ),
+                style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
               ),
             ),
 
@@ -453,9 +470,8 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
           // Product Recommendations Section
           if (recommendedProducts.isNotEmpty)
             _buildProductRecommendations(constraints),
-          
-          if (recommendedProducts.isNotEmpty)
-            const SizedBox(height: 20),
+
+          if (recommendedProducts.isNotEmpty) const SizedBox(height: 20),
 
           // Warning
           Container(
@@ -637,8 +653,19 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
 
   Widget _buildProductRecommendations(BoxConstraints constraints) {
     int crossAxisCount = 3;
-    if (constraints.maxWidth < 900) crossAxisCount = 2;
-    if (constraints.maxWidth < 600) crossAxisCount = 1;
+    double childAspectRatio = 0.85;
+    double spacing = 16.0;
+
+    if (constraints.maxWidth < 900) {
+      crossAxisCount = 2;
+      childAspectRatio = 0.75;
+      spacing = 12.0;
+    }
+    if (constraints.maxWidth < 600) {
+      crossAxisCount = 1;
+      childAspectRatio = 0.7;
+      spacing = 10.0;
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -664,9 +691,9 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
           itemCount: recommendedProducts.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
-            childAspectRatio: 0.85,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
+            childAspectRatio: childAspectRatio,
+            crossAxisSpacing: spacing,
+            mainAxisSpacing: spacing,
           ),
           itemBuilder: (context, index) {
             final product = recommendedProducts[index];
@@ -678,6 +705,7 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
   }
 
   Widget _buildProductCard(Map<String, dynamic> product) {
+    final productId = product['id'];
     final nama = product['nama'] ?? 'Produk';
     final merek = product['merek'] ?? '';
     final harga = product['harga'];
@@ -685,90 +713,115 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
 
     String formattedHarga = '-';
     if (harga != null) {
-      final numHarga = harga is num ? harga : double.tryParse(harga.toString()) ?? 0;
-      formattedHarga = 'Rp${numHarga.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
+      final numHarga = harga is num
+          ? harga
+          : double.tryParse(harga.toString()) ?? 0;
+      formattedHarga =
+          'Rp${numHarga.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Flexible(
-            flex: 6,
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-              ),
-              child: image != null && image.isNotEmpty
-                  ? ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                      child: Image.network(
-                        'https://propagatory-jeremiah-fully.ngrok-free.dev/uploads/products/$image',
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Center(
-                            child: Icon(Icons.image, size: 40, color: Colors.grey),
-                          );
-                        },
-                      ),
-                    )
-                  : const Center(
-                      child: Icon(Icons.medication, size: 40, color: Colors.grey),
-                    ),
+    return GestureDetector(
+      onTap: userId != null
+          ? () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProductDetailPage(
+                    productId: productId,
+                    userId: userId!,
+                    // returnTo: 'faceDetection',
+                  ),
+                ),
+              );
+            }
+          : null,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
             ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (merek.isNotEmpty)
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product Image
+            Flexible(
+              flex: 5,
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(12),
+                  ),
+                ),
+                child: Image.network(
+                  '$imageBaseUrl/web/uploads/$image',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(
+                      child: Icon(Icons.image, size: 35, color: Colors.grey),
+                    );
+                  },
+                ),
+              ),
+            ),
+            // Product Info
+            Flexible(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (merek.isNotEmpty)
+                      Text(
+                        merek,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey.shade600,
+                          height: 1.1,
+                        ),
+                      ),
+                    if (merek.isNotEmpty) const SizedBox(height: 1),
                     Text(
-                      merek,
+                      nama,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                        height: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      formattedHarga,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w600,
                         fontSize: 11,
-                        color: Colors.grey.shade600,
+                        height: 1.1,
                       ),
                     ),
-                  Text(
-                    nama,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    formattedHarga,
-                    style: const TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
