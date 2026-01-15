@@ -202,8 +202,11 @@ class _HistoryPageState extends State<HistoryPage> {
           if (rawUrl.startsWith('http')) {
             imageUrl = rawUrl;
           } else {
-            imageUrl =
-                '${ApiService.baseUrl}/${rawUrl.startsWith('/') ? rawUrl.substring(1) : rawUrl}';
+            // ApiService.baseUrl sudah mengandung '/api'
+            // rawUrl dari backend juga sudah mengandung '/api/history/...'
+            // Kita ambil root URL (tanpa /api di akhir)
+            final rootUrl = ApiService.baseUrl.replaceFirst('/api', '');
+            imageUrl = '$rootUrl${rawUrl.startsWith('/') ? rawUrl : '/$rawUrl'}';
           }
         }
 

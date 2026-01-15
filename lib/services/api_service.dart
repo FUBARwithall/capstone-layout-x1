@@ -6,7 +6,7 @@ import 'secure_storage.dart';
 class ApiService {
   // static const String baseUrl = 'http://192.168.56.1:5000/api';
   static const String baseUrl =
-      'https://nonrelativistic-amalia-unconflictingly.ngrok-free.dev/api';
+      'https://propagatory-jeremiah-fully.ngrok-free.dev/api';
 
   static const String googleClientId =
       '139914337046-333vbk7mq3q47ue93tdahl74n0jvmbk7.apps.googleusercontent.com';
@@ -706,6 +706,54 @@ class ApiService {
       debugPrint('❌ detectFace Error: $e');
       debugPrint('📚 Stack: $stackTrace');
       return {'success': false, 'message': 'Gagal mendeteksi wajah: $e'};
+    }
+  }
+
+  /// Detect body skin disease from an image file
+  static Future<Map<String, dynamic>> detectBody({
+    required String imagePath,
+  }) async {
+    try {
+      final token = await SecureStorage.getToken();
+
+      debugPrint('🌐 API URL: $baseUrl/detection/detect-body');
+      debugPrint('🔑 Token available: ${token != null}');
+      debugPrint('📁 Image path: $imagePath');
+
+      final uri = Uri.parse('$baseUrl/detection/detect-body');
+      final request = http.MultipartRequest('POST', uri);
+
+      // Add auth header
+      if (token != null) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+
+      // Add image file
+      request.files.add(await http.MultipartFile.fromPath('file', imagePath));
+
+      debugPrint('📤 Sending body detection request...');
+
+      // Send request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      debugPrint('📥 Status Code: ${response.statusCode}');
+      debugPrint('📥 Response Body: ${response.body}');
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'data': data};
+      } else {
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Body detection failed',
+        };
+      }
+    } catch (e, stackTrace) {
+      debugPrint('❌ detectBody Error: $e');
+      debugPrint('📚 Stack: $stackTrace');
+      return {'success': false, 'message': 'Gagal mendeteksi kulit tubuh: $e'};
     }
   }
   // ================= HISTORY API =================

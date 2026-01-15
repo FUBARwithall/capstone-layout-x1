@@ -17,7 +17,7 @@ class _ReminderSkincareState extends State<ReminderSkincare> {
   final Color skinTone = const Color(0xFFF5F5DC);
 
   /// GANTI SESUAI SERVER
-    final String baseUrl = 'https://nonrelativistic-amalia-unconflictingly.ngrok-free.dev//api';
+    final String baseUrl = 'https://propagatory-jeremiah-fully.ngrok-free.dev/api';
   // final String baseUrl = 'http://192.168.56.1:5000/api';
 
 

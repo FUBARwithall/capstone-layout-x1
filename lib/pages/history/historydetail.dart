@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:layout_x1/pages/pantaupage.dart';
 import 'package:layout_x1/services/api_service.dart';
 import 'package:layout_x1/pages/products/productdetailpage.dart';
+import 'package:layout_x1/services/user_preferences.dart';
 
 class HistoryDetailPage extends StatefulWidget {
   final String analysisId;
@@ -14,31 +16,38 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
   bool isLoading = true;
   Map<String, dynamic>? detectionData;
   List<dynamic> recommendedProducts = [];
+  int? userId;
 
-  String get imageBaseUrl => ApiService.baseUrl.replaceFirst('/api', '');
+  String get rootUrl => ApiService.baseUrl.replaceFirst('/api', '');
 
   @override
   void initState() {
     super.initState();
+    _loadInitialData();
+  }
+
+  Future<void> _loadInitialData() async {
+    final id = await UserPreferences.getUserId();
+    setState(() {
+      userId = id;
+    });
     _loadHistoryDetail();
-    _loadHistoryDetail(); 
   }
 
   Future<void> _loadHistoryDetail() async {
-  final result = await ApiService.getHistoryDetail(widget.analysisId);
+    final result = await ApiService.getHistoryDetail(widget.analysisId);
 
     if (!mounted) return;
 
     if (result['success'] == true) {
-      final data = result['data']; // ✅ FIX UTAMA
+      final data = result['data'];
 
+      // Ambil masalah kulit untuk mencari produk yang relevan
       final skinProblem = data?['skin_problem_analysis']?['result'] ?? '';
 
       List<dynamic> products = [];
-      if (skinProblem.isNotEmpty) {
-        final productResult = await ApiService.getProductsByCategory(
-          skinProblem,
-        );
+      if (skinProblem != null && skinProblem.isNotEmpty && skinProblem != '-') {
+        final productResult = await ApiService.getProductsByCategory(skinProblem);
         if (productResult['success'] == true) {
           products = productResult['data'] ?? [];
         }
@@ -64,22 +73,116 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detail Riwayat Deteksi'),
         backgroundColor: const Color(0xFF0066CC),
         foregroundColor: Colors.white,
+        title: const Text('Detail Riwayat Analisis'),
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF0066CC)))
           : detectionData == null
-          ? const Center(child: Text('Data tidak tersedia'))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: _buildDetectionResult(),
-            ),
+              ? const Center(child: Text('Data tidak tersedia'))
+              : SafeArea(
+                  child: SingleChildScrollView(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1200),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 40.0,
+                            vertical: 40.0,
+                          ),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              bool isWide = constraints.maxWidth > 800;
+                              return Column(
+                                children: [
+                                  if (isWide)
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(child: _buildInfoText()),
+                                        const SizedBox(width: 60),
+                                        Expanded(child: _buildAnalysisImage()),
+                                      ],
+                                    )
+                                  else
+                                    Column(
+                                      children: [
+                                        _buildInfoText(),
+                                        const SizedBox(height: 32),
+                                        _buildAnalysisImage(),
+                                      ],
+                                    ),
+                                  const SizedBox(height: 40),
+                                  _buildDetectionResult(constraints),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
     );
   }
 
-  Widget _buildDetectionResult() {
+  Widget _buildInfoText() {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Detail riwayat analisis wajah Anda.',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF2C2C2C),
+          ),
+        ),
+        SizedBox(height: 12),
+        Text(
+          'Halaman ini menampilkan hasil deteksi jenis kulit dan masalah kulit yang telah Anda lakukan sebelumnya, beserta tips dan rekomendasi produk yang diberikan.',
+          style: TextStyle(fontSize: 14, height: 1.6, color: Color(0xFF5C5C5C)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAnalysisImage() {
+    final imageUrl = detectionData!['image_url'];
+    final fullUrl = imageUrl != null ? '$rootUrl$imageUrl' : null;
+
+    return Align(
+      alignment: Alignment.topCenter,
+      child: Container(
+        width: 400,
+        height: 300,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.black, width: 3),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(13),
+          child: fullUrl != null
+              ? Image.network(
+                  fullUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => _imagePlaceholder(),
+                )
+              : _imagePlaceholder(),
+        ),
+      ),
+    );
+  }
+
+  Widget _imagePlaceholder() {
+    return const Center(
+      child: Icon(Icons.image_not_supported_outlined, size: 48, color: Colors.grey),
+    );
+  }
+
+  Widget _buildDetectionResult(BoxConstraints constraints) {
     final skinType = detectionData!['skin_type_analysis'];
     final skinProblem = detectionData!['skin_problem_analysis'];
     final timestamp = detectionData!['timestamp'] ?? '';
@@ -92,7 +195,7 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
         border: Border.all(color: const Color(0xFF0066CC), width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -101,137 +204,519 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Hasil Deteksi Wajah',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          // Header
+          Row(
+            children: [
+              const Icon(
+                Icons.medical_information,
+                color: Color(0xFF0066CC),
+                size: 28,
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Hasil Deteksi Wajah',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2C2C2C),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PantauKulitPage(),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.teal,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                    icon: const Icon(
+                      Icons.monitor_heart,
+                      size: 20,
+                      color: Colors.white,
+                    ),
+                    label: const Text(
+                      'Pantau Kulit',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
 
-          const SizedBox(height: 6),
-          Text(
-            'Dianalisis pada: $timestamp',
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
-          ),
+          if (timestamp.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                'Dianalisis pada: ${_formatTimestamp(timestamp)}',
+                style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
+              ),
+            ),
 
-          const Divider(height: 24),
+          const Divider(height: 24, thickness: 1),
 
-          _resultSection(
+          // Skin Type Section
+          _buildResultSection(
+            icon: Icons.face,
             title: 'Jenis Kulit',
-            result: skinType['result'],
-            confidence: skinType['confidence'],
+            result: skinType?['result']?.toString() ?? '-',
+            confidence: skinType?['confidence'] is num 
+                ? '${(skinType!['confidence'] as num).toStringAsFixed(1)}%' 
+                : skinType?['confidence']?.toString() ?? '-',
             color: Colors.blue,
           ),
 
           const SizedBox(height: 20),
 
-          _resultSection(
+          // Skin Problem Section
+          _buildResultSection(
+            icon: Icons.healing,
             title: 'Masalah Kulit',
-            result: skinProblem['result'],
-            confidence: skinProblem['confidence'],
+            result: skinProblem?['result']?.toString() ?? '-',
+            confidence: skinProblem?['confidence'] is num 
+                ? '${(skinProblem!['confidence'] as num).toStringAsFixed(1)}%' 
+                : skinProblem?['confidence']?.toString() ?? '-',
             color: Colors.orange,
           ),
 
-          if (recommendedProducts.isNotEmpty) ...[
-            const SizedBox(height: 30),
-            const Text(
-              'Rekomendasi Produk',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          const SizedBox(height: 20),
+
+          // Tips Section
+          _buildTipsSection(skinType?['result']?.toString(), skinProblem?['result']?.toString()),
+
+          const SizedBox(height: 20),
+
+          // Product Recommendations Section
+          if (recommendedProducts.isNotEmpty)
+            _buildProductRecommendations(constraints),
+
+          if (recommendedProducts.isNotEmpty) const SizedBox(height: 20),
+
+          // Warning
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.amber.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.amber.shade200),
             ),
-            const SizedBox(height: 12),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: recommendedProducts.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.75,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-              ),
-              itemBuilder: (context, index) {
-                final p = recommendedProducts[index];
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            ProductDetailPage(productId: p['id'], userId: 0),
-                      ),
-                    );
-                  },
-                  child: _productCard(p),
-                );
-              },
+            child: Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.amber.shade700,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Hasil deteksi ini adalah perkiraan berdasarkan AI. Konsultasikan dengan dermatolog untuk diagnosis yang akurat.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.amber.shade900,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ],
       ),
     );
   }
 
-  Widget _resultSection({
+  Widget _buildResultSection({
+    required IconData icon,
     required String title,
     required String result,
     required String confidence,
     required Color color,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            result,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: color,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              confidence,
-              style: const TextStyle(color: Colors.white),
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      result,
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: color.withValues(alpha: 0.8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      confidence,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTipsSection(String? skinType, String? skinProblem) {
+    final tips = _getTipsForSkin(skinType, skinProblem);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          children: [
+            Icon(Icons.lightbulb_outline, color: Colors.green, size: 20),
+            SizedBox(width: 8),
+            Text(
+              'Tips Perawatan',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.green,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.green.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: tips
+                .map(
+                  (tip) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.only(top: 6),
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            tip,
+                            textAlign: TextAlign.justify,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF2C2C2C),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<String> _getTipsForSkin(String? skinType, String? skinProblem) {
+    List<String> tips = [];
+    switch (skinType?.toLowerCase()) {
+      case 'berminyak':
+        tips.addAll([
+          'Gunakan facial wash khusus kulit berminyak dua kali sehari.',
+          'Gunakan toner bebas alkohol untuk mengontrol minyak berlebih.',
+          'Pakai pelembap ringan berbahan dasar air (oil-free).',
+        ]);
+        break;
+      case 'kering':
+        tips.addAll([
+          'Gunakan pembersih wajah yang lembut dan melembapkan.',
+          'Aplikasikan pelembap kaya akan hyaluronic acid.',
+          'Hindari air panas saat mencuci wajah.',
+        ]);
+        break;
+      case 'normal':
+        tips.addAll([
+          'Pertahankan rutinitas skincare sederhana.',
+          'Gunakan sunscreen setiap hari.',
+          'Jaga hidrasi dengan minum air yang cukup.',
+        ]);
+        break;
+      default:
+        tips.add('Jaga kebersihan wajah dan gunakan sunscreen setiap hari.');
+    }
+    switch (skinProblem?.toLowerCase()) {
+      case 'jerawat':
+        tips.addAll([
+          'Hindari menyentuh wajah terlalu sering.',
+          'Gunakan produk dengan kandungan salicylic acid atau benzoyl peroxide.',
+          'Ganti sarung bantal secara teratur.',
+        ]);
+        break;
+      case 'kusam':
+        tips.addAll([
+          'Lakukan eksfoliasi 1-2 kali seminggu.',
+          'Gunakan serum Vitamin C untuk mencerahkan kulit.',
+          'Pastikan tidur yang cukup setiap malam.',
+        ]);
+        break;
+      case 'penuaan':
+        tips.addAll([
+          'Gunakan produk dengan retinol atau peptide.',
+          'Aplikasikan eye cream untuk area mata.',
+          'Lindungi kulit dari paparan sinar matahari.',
+        ]);
+        break;
+    }
+    return tips;
+  }
+
+  Widget _buildProductRecommendations(BoxConstraints constraints) {
+    int crossAxisCount = 3;
+    double childAspectRatio = 0.85;
+    double spacing = 16.0;
+
+    if (constraints.maxWidth < 900) {
+      crossAxisCount = 2;
+      childAspectRatio = 0.75;
+      spacing = 12.0;
+    }
+    if (constraints.maxWidth < 600) {
+      crossAxisCount = 1;
+      childAspectRatio = 0.7;
+      spacing = 10.0;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          children: [
+            Icon(Icons.medication, color: Colors.purple, size: 20),
+            SizedBox(width: 8),
+            Text(
+              'Rekomendasi Produk',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.purple,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: recommendedProducts.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: childAspectRatio,
+            crossAxisSpacing: spacing,
+            mainAxisSpacing: spacing,
+          ),
+          itemBuilder: (context, index) {
+            final product = recommendedProducts[index];
+            return _buildProductCard(product);
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProductCard(Map<String, dynamic> product) {
+    final productId = product['id'];
+    final nama = product['nama'] ?? 'Produk';
+    final merek = product['merek'] ?? product['brand'] ?? '';
+    final harga = product['harga'];
+    final image = product['image'];
+
+    String formattedHarga = '-';
+    if (harga != null) {
+      final numHarga = harga is num ? harga : double.tryParse(harga.toString()) ?? 0;
+      formattedHarga = 'Rp${numHarga.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
+    }
+
+    return GestureDetector(
+      onTap: userId != null
+          ? () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProductDetailPage(
+                    productId: productId,
+                    userId: userId!,
+                  ),
+                ),
+              );
+            }
+          : null,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Flexible(
+              flex: 5,
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                ),
+                child: Image.network(
+                  '$rootUrl/web/uploads/$image',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(
+                      child: Icon(Icons.image, size: 35, color: Colors.grey),
+                    );
+                  },
+                ),
+              ),
+            ),
+            Flexible(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (merek.isNotEmpty)
+                      Text(
+                        merek,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey.shade600,
+                          height: 1.1,
+                        ),
+                      ),
+                    if (merek.isNotEmpty) const SizedBox(height: 1),
+                    Text(
+                      nama,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                        height: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      formattedHarga,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 11,
+                        height: 1.1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _productCard(Map<String, dynamic> p) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Column(
-        children: [
-          Expanded(
-            child: Image.network(
-              '$imageBaseUrl/web/uploads/${p['image']}',
-              fit: BoxFit.cover,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Text(
-              p['nama'],
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
+  String _formatTimestamp(String timestamp) {
+    try {
+      final dt = DateTime.parse(timestamp);
+      return '${dt.day}/${dt.month}/${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return timestamp;
+    }
   }
 }
