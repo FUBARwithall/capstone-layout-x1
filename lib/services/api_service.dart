@@ -4,7 +4,13 @@ import 'package:flutter/foundation.dart';
 import 'secure_storage.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://propagatory-jeremiah-fully.ngrok-free.dev/api';
+   static const String baseUrl = 'http://10.235.110.225:5000/api';
+   //static const String baseUrl = 'https://pedulikulit.my.id/api';
+  //static const String baseUrl =
+  //    'https://nonrelativistic-amalia-unconflictingly.ngrok-free.dev/api';
+
+  static const String googleClientId =
+      '139914337046-333vbk7mq3q47ue93tdahl74n0jvmbk7.apps.googleusercontent.com';
 
   static http.Client? _client;
 
@@ -155,22 +161,83 @@ class ApiService {
     }
   }
 
-  // ================= CHATBOT API (Public - No Auth) =================
+  // ================= CHATBOT API =================
+
+  static Future<List<dynamic>> getMessages(int conversationId) async {
+    final headers = await _getAuthHeaders();
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/chatbot/messages/$conversationId'),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+
+    throw Exception('Gagal load messages');
+  }
+
+
+  static Future<List<dynamic>> getConversations() async {
+    final headers = await _getAuthHeaders();
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/chatbot/conversations'),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+
+    return [];
+  }
+
+
+  static Future<Map<String, dynamic>> createConversation() async {
+    final headers = await _getAuthHeaders();
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/chatbot/conversations'),
+      headers: headers,
+      body: jsonEncode({}),
+    );
+
+    if (response.statusCode == 201) {
+      final data = jsonDecode(response.body);
+      
+      return {
+        'success': true,
+        'conversation_id': data['conversation_id'],
+        'title': data['title'],
+      };
+    }
+
+    throw Exception('Gagal membuat percakapan');
+  }
+
   static Future<Map<String, dynamic>> sendChatMessage({
+    required int conversationId,
     required String message,
   }) async {
-    try {
-      final response = await (_client ?? http.Client()).post(
-        Uri.parse('$baseUrl/chatbot/chat'),
-        headers: _getHeaders(), // No auth needed
-        body: jsonEncode({'message': message}),
-      );
+    final headers = await _getAuthHeaders();
 
-      final data = jsonDecode(response.body);
-      return {'success': response.statusCode == 200, 'reply': data['reply']};
-    } catch (e) {
-      return {'success': false, 'reply': 'Gagal terhubung ke chatbot: $e'};
-    }
+    final response = await http.post(
+      Uri.parse('$baseUrl/chatbot/chat'),
+      headers: headers,
+      body: jsonEncode({
+        'conversation_id': conversationId,
+        'message': message,
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+
+    return {
+      'success': response.statusCode == 200,
+      'reply': data['reply'] ?? 'Maaf, tidak ada balasan 😢',
+    };
   }
 
   // ================= ARTICLES API =================
