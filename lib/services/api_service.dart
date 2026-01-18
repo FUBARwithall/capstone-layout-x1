@@ -4,10 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'secure_storage.dart';
 
 class ApiService {
-   static const String baseUrl = 'http://10.235.110.225:5000/api';
+  //  static const String baseUrl = 'http://10.235.110.225:5000/api';
    //static const String baseUrl = 'https://pedulikulit.my.id/api';
-  //static const String baseUrl =
-  //    'https://nonrelativistic-amalia-unconflictingly.ngrok-free.dev/api';
+  static const String baseUrl = 'https://nonrelativistic-amalia-unconflictingly.ngrok-free.dev/api';
 
   static const String googleClientId =
       '139914337046-333vbk7mq3q47ue93tdahl74n0jvmbk7.apps.googleusercontent.com';

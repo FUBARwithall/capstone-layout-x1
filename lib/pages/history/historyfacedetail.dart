@@ -186,7 +186,10 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0066CC),
         foregroundColor: Colors.white,
-        title: const Text('Detail Riwayat Analisis'),
+        title: const Text(
+          'Detail Deteksi Kulit Wajah',
+          style: TextStyle(fontSize: 20),
+        ),
       ),
       body: isLoading
           ? const Center(
@@ -248,15 +251,6 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
     return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Detail riwayat analisis wajah Anda.',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF2C2C2C),
-          ),
-        ),
-        SizedBox(height: 12),
         Text(
           'Halaman ini menampilkan hasil deteksi jenis kulit dan masalah kulit yang telah Anda lakukan sebelumnya, beserta tips dan rekomendasi produk yang diberikan.',
           style: TextStyle(fontSize: 14, height: 1.6, color: Color(0xFF5C5C5C)),
@@ -343,50 +337,48 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF2C2C2C),
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PantauKulitPage(),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                    ),
-                    icon: const Icon(
-                      Icons.monitor_heart,
-                      size: 20,
-                      color: Colors.white,
-                    ),
-                    label: const Text(
-                      'Pantau Kulit',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
                 ),
               ),
             ],
           ),
-
+          const SizedBox(height: 12),
+          // Tombol Pantau Kulit
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PantauKulitPage(fromHistory: true),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
+              icon: const Icon(
+                Icons.monitor_heart,
+                size: 20,
+                color: Colors.white,
+              ),
+              label: const Text(
+                'Pantau Kulit',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+          ),
           if (timestamp.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 8),
@@ -840,127 +832,126 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
   }
 
   Widget _buildNotesSection() {
-  return Container(
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: const Color(0xFF0066CC), width: 2),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Row(
-              children: [
-                Icon(Icons.note_alt, color: Color(0xFF0066CC), size: 24),
-                SizedBox(width: 10),
-                Text(
-                  'Catatan Pribadi',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2C2C2C),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF0066CC), width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.note_alt, color: Color(0xFF0066CC), size: 24),
+                  SizedBox(width: 10),
+                  Text(
+                    'Catatan Pribadi',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2C2C2C),
+                    ),
                   ),
+                ],
+              ),
+              if (_notesController.text.isNotEmpty)
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      setState(() => isEditingNotes = true);
+                    } else if (value == 'delete') {
+                      _deleteNote();
+                    }
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(value: 'edit', child: Text('Edit')),
+                    PopupMenuItem(value: 'delete', child: Text('Hapus')),
+                  ],
+                ),
+            ],
+          ),
+          const Divider(height: 24),
+          if (isEditingNotes)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextField(
+                  controller: _notesController,
+                  maxLines: 5,
+                  decoration: const InputDecoration(
+                    hintText: 'Tambahkan catatan...',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: isSavingNotes ? null : _cancelEditNotes,
+                      child: const Text('Batal'),
+                    ),
+                    ElevatedButton(
+                      onPressed: isSavingNotes ? null : _saveNotes,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0066CC),
+                      ),
+                      child: isSavingNotes
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              'Simpan',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                    ),
+                  ],
                 ),
               ],
-            ),
-            if (_notesController.text.isNotEmpty)
-              PopupMenuButton<String>(
-                onSelected: (value) {
-                  if (value == 'edit') {
-                    setState(() => isEditingNotes = true);
-                  } else if (value == 'delete') {
-                    _deleteNote();
-                  }
-                },
-                itemBuilder: (context) => const [
-                  PopupMenuItem(value: 'edit', child: Text('Edit')),
-                  PopupMenuItem(value: 'delete', child: Text('Hapus')),
-                ],
-              ),
-          ],
-        ),
-        const Divider(height: 24),
-        if (isEditingNotes)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextField(
-                controller: _notesController,
-                maxLines: 5,
-                decoration: const InputDecoration(
-                  hintText: 'Tambahkan catatan...',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: isSavingNotes ? null : _cancelEditNotes,
-                    child: const Text('Batal'),
-                  ),
-                  ElevatedButton(
-                    onPressed: isSavingNotes ? null : _saveNotes,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0066CC),
-                    ),
-                    child: isSavingNotes
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                            'Simpan',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                  ),
-                ],
-              ),
-            ],
-          )
-        else
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                isEditingNotes = true;
-                _notesController.text = detectionData?['note'] ?? '';
-              });
-            },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: _notesController.text.isEmpty
-                    ? Colors.grey[100]
-                    : const Color(0xFF0066CC).withOpacity(0.05),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
+            )
+          else
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  isEditingNotes = true;
+                  _notesController.text = detectionData?['note'] ?? '';
+                });
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
                   color: _notesController.text.isEmpty
-                      ? Colors.grey[300]!
-                      : const Color(0xFF0066CC).withOpacity(0.2),
+                      ? Colors.grey[100]
+                      : const Color(0xFF0066CC).withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: _notesController.text.isEmpty
+                        ? Colors.grey[300]!
+                        : const Color(0xFF0066CC).withOpacity(0.2),
+                  ),
                 ),
-              ),
-              child: Text(
-                _notesController.text.isEmpty
-                    ? 'Belum ada catatan.\nTap di sini untuk menambahkan catatan pribadi.'
-                    : _notesController.text,
-                style: TextStyle(
-                  color: _notesController.text.isEmpty
-                      ? Colors.grey
-                      : const Color(0xFF2C2C2C),
-                  fontSize: 14,
-                  height: 1.6,
+                child: Text(
+                  _notesController.text.isEmpty
+                      ? 'Belum ada catatan.\nTap di sini untuk menambahkan catatan pribadi.'
+                      : _notesController.text,
+                  style: TextStyle(
+                    color: _notesController.text.isEmpty
+                        ? Colors.grey
+                        : const Color(0xFF2C2C2C),
+                    fontSize: 14,
+                    height: 1.6,
+                  ),
                 ),
               ),
             ),
-          ),
-      ],
-    ),
-  );
-}
-
+        ],
+      ),
+    );
+  }
 
   String _formatTimestamp(String timestamp) {
     try {

@@ -28,7 +28,7 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  cupertino_icons: ^1.0.8
+  flutter_launcher_icons: "^0.14.4"
   firebase_auth: ^6.1.2
   firebase_core: ^4.2.1
   flutter:
@@ -45,11 +45,18 @@ dependencies:
   permission_handler: ^11.3.1 
 
 dev_dependencies:
+  flutter_launcher_icons: "^0.14.4"
   flutter_lints: ^5.0.0
   flutter_test:
     sdk: flutter
   mockito: ^5.4.4
   http_mock_adapter: ^0.6.1
+
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/data/images/PeduliKulit.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -65,6 +72,8 @@ flutter:
     - assets/data/images/cacar.jpeg
     - assets/data/images/berminyak.jpeg
     - assets/data/images/google.webp
+    - assets/data/images/PeduliKulit.png
+
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

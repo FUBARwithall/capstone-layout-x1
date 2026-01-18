@@ -170,7 +170,7 @@ class _HistoryBodyDetailPageState extends State<HistoryBodyDetailPage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0066CC),
         foregroundColor: Colors.white,
-        title: const Text('Detail Riwayat Penyakit Tubuh'),
+        title: const Text('Detail Deteksi Kulit Tubuh', style: TextStyle(fontSize: 20),),
       ),
       body: isLoading
           ? const Center(
@@ -230,15 +230,6 @@ class _HistoryBodyDetailPageState extends State<HistoryBodyDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Detail riwayat analisis penyakit kulit tubuh.',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF2C2C2C),
-          ),
-        ),
-        const SizedBox(height: 12),
         const Text(
           'Halaman ini menampilkan hasil deteksi penyakit kulit yang telah Anda lakukan sebelumnya, lengkap dengan gejala dan saran pengobatan.',
           style: TextStyle(fontSize: 14, height: 1.6, color: Color(0xFF5C5C5C)),

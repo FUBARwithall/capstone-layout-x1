@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SkinCare AI',
+      title: 'Peduli Kulit',
       theme: ThemeData(primarySwatch: Colors.blue),
       home: const SplashScreen(), // Check session first
       routes: {
@@ -92,7 +92,7 @@ class _SplashScreenState extends State<SplashScreen> {
             CircularProgressIndicator(color: Color(0xFF0066CC)),
             SizedBox(height: 16),
             Text(
-              'SkinCare AI',
+              'Peduli Kulit',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,

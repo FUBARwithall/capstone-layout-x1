@@ -363,172 +363,177 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
   }
 
   Widget _buildDetectionResult(BoxConstraints constraints) {
-    final skinType = detectionData!['skin_type_analysis'];
-    final skinProblem = detectionData!['skin_problem_analysis'];
-    final timestamp = detectionData!['timestamp'] ?? '';
+  final skinType = detectionData!['skin_type_analysis'];
+  final skinProblem = detectionData!['skin_problem_analysis'];
+  final timestamp = detectionData!['timestamp'] ?? '';
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF0066CC), width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Row(
-            children: [
-              const Icon(
-                Icons.medical_information,
-                color: Color(0xFF0066CC),
-                size: 28,
-              ),
-              const SizedBox(width: 10),
-              const Expanded(
-                child: Text(
-                  'Hasil Deteksi Wajah',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2C2C2C),
-                  ),
-                  overflow: TextOverflow.ellipsis,
+  return Container(
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: const Color(0xFF0066CC), width: 2),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.05),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header
+        Row(
+          children: [
+            const Icon(
+              Icons.medical_information,
+              color: Color(0xFF0066CC),
+              size: 28,
+            ),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'Hasil Deteksi Wajah',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2C2C2C),
                 ),
               ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        // Tombol Pantau Kulit - FULL WIDTH
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PantauKulitPage(fromHistory: true,),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.teal,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+            ),
+            icon: const Icon(
+              Icons.monitor_heart,
+              size: 20,
+              color: Colors.white,
+            ),
+            label: const Text(
+              'Pantau Kulit',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
+            ),
+          ),
+        ),
+
+        if (timestamp.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              'Dianalisis pada: ${_formatTimestamp(timestamp)}',
+              style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
+            ),
+          ),
+
+        const Divider(height: 24, thickness: 1),
+
+        // Skin Type Section
+        _buildResultSection(
+          icon: Icons.face,
+          title: 'Jenis Kulit',
+          result: skinType?['result']?.toString() ?? '-',
+          confidence: skinType?['confidence'] is num
+              ? '${(skinType!['confidence'] as num).toStringAsFixed(1)}%'
+              : skinType?['confidence']?.toString() ?? '-',
+          predictions: skinType?['all_predictions'] ?? {},
+          color: Colors.blue,
+        ),
+
+        const SizedBox(height: 20),
+
+        // Skin Problem Section
+        _buildResultSection(
+          icon: Icons.healing,
+          title: 'Masalah Kulit',
+          result: skinProblem?['result']?.toString() ?? '-',
+          confidence: skinProblem?['confidence'] is num
+              ? '${(skinProblem!['confidence'] as num).toStringAsFixed(1)}%'
+              : skinProblem?['confidence']?.toString() ?? '-',
+          predictions: skinProblem?['all_predictions'] ?? {},
+          color: Colors.orange,
+        ),
+
+        const SizedBox(height: 20),
+
+        // Tips Section
+        _buildTipsSection(
+          skinType?['result']?.toString(),
+          skinProblem?['result']?.toString(),
+        ),
+
+        const SizedBox(height: 20),
+
+        // Product Recommendations Section
+        if (recommendedProducts.isNotEmpty)
+          _buildProductRecommendations(constraints),
+
+        if (recommendedProducts.isNotEmpty) const SizedBox(height: 20),
+
+        // Warning
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.amber.shade50,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.amber.shade200),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.amber.shade700,
+                size: 20,
+              ),
               const SizedBox(width: 8),
-              Flexible(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PantauKulitPage(),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                    ),
-                    icon: const Icon(
-                      Icons.monitor_heart,
-                      size: 20,
-                      color: Colors.white,
-                    ),
-                    label: const Text(
-                      'Pantau Kulit',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+              Expanded(
+                child: Text(
+                  'Hasil deteksi ini adalah perkiraan berdasarkan AI. Konsultasikan dengan dermatolog untuk diagnosis yang akurat.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.amber.shade900,
                   ),
                 ),
               ),
             ],
           ),
+        ),
 
-          if (timestamp.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                'Dianalisis pada: ${_formatTimestamp(timestamp)}',
-                style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
-              ),
-            ),
+        const SizedBox(height: 20),
 
-          const Divider(height: 24, thickness: 1),
-
-          // Skin Type Section
-          _buildResultSection(
-            icon: Icons.face,
-            title: 'Jenis Kulit',
-            result: skinType['result'] ?? '-',
-            confidence: skinType['confidence'] ?? '-',
-            predictions: skinType['all_predictions'] ?? {},
-            color: Colors.blue,
-          ),
-
-          const SizedBox(height: 20),
-
-          // Skin Problem Section
-          _buildResultSection(
-            icon: Icons.healing,
-            title: 'Masalah Kulit',
-            result: skinProblem['result'] ?? '-',
-            confidence: skinProblem['confidence'] ?? '-',
-            predictions: skinProblem['all_predictions'] ?? {},
-            color: Colors.orange,
-          ),
-
-          const SizedBox(height: 20),
-
-          // Tips Section
-          _buildTipsSection(skinType['result'], skinProblem['result']),
-
-          const SizedBox(height: 20),
-
-          // Product Recommendations Section
-          if (recommendedProducts.isNotEmpty)
-            _buildProductRecommendations(constraints),
-
-          if (recommendedProducts.isNotEmpty) const SizedBox(height: 20),
-
-          // Warning
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.amber.shade50,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.amber.shade200),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.warning_amber_rounded,
-                  color: Colors.amber.shade700,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Hasil deteksi ini adalah perkiraan berdasarkan AI. Konsultasikan dengan dermatolog untuk diagnosis yang akurat.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.amber.shade900,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Notes Section
-          _buildNotesSection(),
-        ],
-      ),
-    );
-  }
-
+        // Notes Section
+        _buildNotesSection(),
+      ],
+    ),
+  );
+}
   Widget _buildResultSection({
     required IconData icon,
     required String title,
@@ -1031,157 +1036,157 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
 
   // Ganti fungsi _buildNotesSection() dengan code ini:
 
-Widget _buildNotesSection() {
-  return Container(
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: const Color(0xFF0066CC), width: 2),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.05),
-          blurRadius: 10,
-          offset: const Offset(0, 4),
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Icon(Icons.note_alt, color: Color(0xFF0066CC), size: 24),
-            const SizedBox(width: 10),
-            const Expanded(
-              child: Text(
-                'Catatan Pribadi',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C2C2C),
-                ),
-              ),
-            ),
-            // Menu edit/hapus hanya muncul kalau ada catatan
-            if (_notesController.text.isNotEmpty)
-              PopupMenuButton<String>(
-                onSelected: (value) {
-                  if (value == 'edit') {
-                    setState(() => isEditingNotes = true);
-                  } else if (value == 'delete') {
-                    _deleteNote();
-                  }
-                },
-                itemBuilder: (context) => const [
-                  PopupMenuItem(value: 'edit', child: Text('Edit')),
-                  PopupMenuItem(value: 'delete', child: Text('Hapus')),
-                ],
-              ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        const Divider(height: 1, thickness: 1),
-        const SizedBox(height: 16),
-        if (isEditingNotes)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget _buildNotesSection() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF0066CC), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              TextField(
-                controller: _notesController,
-                maxLines: 5,
-                decoration: InputDecoration(
-                  hintText: 'Tambahkan catatan pribadi Anda di sini...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFF0066CC)),
+              const Icon(Icons.note_alt, color: Color(0xFF0066CC), size: 24),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Catatan Pribadi',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2C2C2C),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(
-                      color: Color(0xFF0066CC),
-                      width: 2,
-                    ),
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey[50],
                 ),
               ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: isSavingNotes ? null : _cancelEditNotes,
-                    child: const Text('Batal'),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: isSavingNotes ? null : _saveNotes,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0066CC),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+              // Menu edit/hapus hanya muncul kalau ada catatan
+              if (_notesController.text.isNotEmpty)
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      setState(() => isEditingNotes = true);
+                    } else if (value == 'delete') {
+                      _deleteNote();
+                    }
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(value: 'edit', child: Text('Edit')),
+                    PopupMenuItem(value: 'delete', child: Text('Hapus')),
+                  ],
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Divider(height: 1, thickness: 1),
+          const SizedBox(height: 16),
+          if (isEditingNotes)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextField(
+                  controller: _notesController,
+                  maxLines: 5,
+                  decoration: InputDecoration(
+                    hintText: 'Tambahkan catatan pribadi Anda di sini...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF0066CC)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF0066CC),
+                        width: 2,
                       ),
                     ),
-                    child: isSavingNotes
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text('Simpan'),
+                    filled: true,
+                    fillColor: Colors.grey[50],
                   ),
-                ],
-              ),
-            ],
-          )
-        else
-          GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: () {
-              // Langsung masuk edit tanpa snack bar
-              setState(() => isEditingNotes = true);
-            },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: _notesController.text.isEmpty
-                    ? Colors.grey[100]
-                    : const Color(0xFF0066CC).withOpacity(0.05),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: _notesController.text.isEmpty
-                      ? Colors.grey[300]!
-                      : const Color(0xFF0066CC).withOpacity(0.2),
                 ),
-              ),
-              child: Text(
-                _notesController.text.isEmpty
-                    ? 'Belum ada catatan.\nTap di sini untuk menambahkan catatan pribadi.'
-                    : _notesController.text,
-                style: TextStyle(
-                  fontSize: 14,
-                  height: 1.6,
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: isSavingNotes ? null : _cancelEditNotes,
+                      child: const Text('Batal'),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: isSavingNotes ? null : _saveNotes,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0066CC),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: isSavingNotes
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text('Simpan'),
+                    ),
+                  ],
+                ),
+              ],
+            )
+          else
+            GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () {
+                // Langsung masuk edit tanpa snack bar
+                setState(() => isEditingNotes = true);
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
                   color: _notesController.text.isEmpty
-                      ? Colors.grey
-                      : const Color(0xFF2C2C2C),
-                  fontStyle: _notesController.text.isEmpty
-                      ? FontStyle.italic
-                      : FontStyle.normal,
+                      ? Colors.grey[100]
+                      : const Color(0xFF0066CC).withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: _notesController.text.isEmpty
+                        ? Colors.grey[300]!
+                        : const Color(0xFF0066CC).withOpacity(0.2),
+                  ),
+                ),
+                child: Text(
+                  _notesController.text.isEmpty
+                      ? 'Belum ada catatan.\nTap di sini untuk menambahkan catatan pribadi.'
+                      : _notesController.text,
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.6,
+                    color: _notesController.text.isEmpty
+                        ? Colors.grey
+                        : const Color(0xFF2C2C2C),
+                    fontStyle: _notesController.text.isEmpty
+                        ? FontStyle.italic
+                        : FontStyle.normal,
+                  ),
                 ),
               ),
             ),
-          ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 
   Widget _buildRightImage() {
     return Align(

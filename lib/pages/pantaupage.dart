@@ -3,21 +3,16 @@ import 'package:intl/intl.dart';
 import 'package:layout_x1/services/api_service.dart';
 import '../services/user_preferences.dart';
 
-void main() {
-  runApp(const PantauKulitPage());
-}
-
 class PantauKulitPage extends StatelessWidget {
-  const PantauKulitPage({super.key});
+    final bool fromHistory;
+
+  const PantauKulitPage({super.key,this.fromHistory = false,});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Pemantau Kesehatan Kulit',
-      home: SkinHealthTracker(),
-    );
+    return SkinHealthTracker(showBackButton: fromHistory);
   }
+
 }
 
 // ================= MODELS =================
@@ -73,30 +68,34 @@ class DrinkLog {
   });
 }
 
-  class DailyHistory {
-    final String date;
-    final double skinScore;
-    final double sleepHours;
-    final String foods;
-    final String drinks;
-    final String status;
-    final String triggers;
+class DailyHistory {
+  final String date;
+  final double skinScore;
+  final double sleepHours;
+  final String foods;
+  final String drinks;
+  final String status;
+  final String triggers;
 
-    DailyHistory({
-      required this.date,
-      required this.skinScore,
-      required this.sleepHours,
-      required this.foods,
-      required this.drinks,
-      required this.status,
-      required this.triggers,
-    });
-  }
+  DailyHistory({
+    required this.date,
+    required this.skinScore,
+    required this.sleepHours,
+    required this.foods,
+    required this.drinks,
+    required this.status,
+    required this.triggers,
+  });
+}
 
 // ================= MAIN PAGE =================
 
 class SkinHealthTracker extends StatefulWidget {
-  const SkinHealthTracker({super.key});
+  final bool showBackButton;
+  const SkinHealthTracker({
+    super.key,
+    this.showBackButton = false,  // ✅ Hapus "required", tambah default value
+  });
 
   @override
   State<SkinHealthTracker> createState() => _SkinHealthTrackerState();
@@ -125,16 +124,15 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
   // ---------- SLEEP ----------
   double _sleepHours = 7.0;
 
-
   bool _isSubmitting = false;
 
-    bool _loadingHistory = true;
+  bool _loadingHistory = true;
   List<DailyHistory> _historyData = [];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _loadFoods();
     _loadDrinks();
     _loadHistoryData();
@@ -486,6 +484,14 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        // Tampilkan back button HANYA jika showBackButton = true
+        automaticallyImplyLeading: widget.showBackButton,
+        leading: widget.showBackButton 
+          ? IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.of(context).pop(),
+            )
+          : null,
         title: const Text('Pemantau Kesehatan Kulit'),
         backgroundColor: const Color(0xFF0066CC),
         foregroundColor: Colors.white,
@@ -502,10 +508,7 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildInputPage(),
-          _buildAnalysisPage(),
-        ],
+        children: [_buildInputPage(), _buildAnalysisPage()],
       ),
     );
   }
@@ -840,7 +843,7 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
     );
   }
 
- Widget _buildAnalysisPage() {
+  Widget _buildAnalysisPage() {
     if (_loadingHistory) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -928,7 +931,8 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
                             String shortDate = data.date.split('-').last;
 
                             double maxExpectedScore = 15.0;
-                            double barHeight = (data.skinScore / maxExpectedScore) * 120;
+                            double barHeight =
+                                (data.skinScore / maxExpectedScore) * 120;
 
                             return Column(
                               mainAxisAlignment: MainAxisAlignment.end,
