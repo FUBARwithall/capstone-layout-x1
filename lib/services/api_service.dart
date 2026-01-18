@@ -4,12 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'secure_storage.dart';
 
 class ApiService {
-  // static const String baseUrl = 'http://192.168.56.1:5000/api';
-  static const String baseUrl =
-      'https://nonrelativistic-amalia-unconflictingly.ngrok-free.dev/api';
-
-  static const String googleClientId =
-      '139914337046-333vbk7mq3q47ue93tdahl74n0jvmbk7.apps.googleusercontent.com';
+  static const String baseUrl = 'https://propagatory-jeremiah-fully.ngrok-free.dev/api';
 
   static http.Client? _client;
 
@@ -851,7 +846,7 @@ class ApiService {
       return {
         'success': response.statusCode == 200,
         'message': data['message'],
-        'note': data['note'],
+        'notes': data['notes'],
       };
     } catch (e) {
       return {'success': false, 'message': e.toString()};
@@ -954,7 +949,7 @@ class ApiService {
       return {
         'success': response.statusCode == 200,
         'message': data['message'],
-        'note': data['note'],
+        'notes': data['notes'],
       };
     } catch (e) {
       return {'success': false, 'message': e.toString()};
