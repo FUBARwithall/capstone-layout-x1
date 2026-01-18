@@ -497,7 +497,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
           tabs: const [
             Tab(icon: Icon(Icons.edit), text: 'Input'),
             Tab(icon: Icon(Icons.analytics), text: 'Analisis'),
-            Tab(icon: Icon(Icons.photo_library), text: 'Galeri'),
           ],
         ),
       ),
@@ -506,7 +505,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
         children: [
           _buildInputPage(),
           _buildAnalysisPage(),
-          _buildGalleryPage(),
         ],
       ),
     );
@@ -1161,54 +1159,6 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
           ),
         ),
       ],
-    );
-  }
-
-  // Halaman Galeri Foto
-  Widget _buildGalleryPage() {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.7,
-      ),
-      itemCount: 6,
-      itemBuilder: (context, index) {
-        return Card(
-          clipBehavior: Clip.antiAlias,
-          elevation: 4,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: Container(
-                  color: Colors.grey[300],
-                  child: Icon(Icons.face, size: 64, color: Colors.grey[600]),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(12),
-                color: Colors.white,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${10 - index} Nov 2025',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

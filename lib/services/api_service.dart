@@ -770,92 +770,256 @@ class ApiService {
       return {'success': false, 'message': 'Gagal mendeteksi wajah: $e'};
     }
   }
+
+  /// Detect body skin disease from an image file
+  static Future<Map<String, dynamic>> detectBody({
+    required String imagePath,
+  }) async {
+    try {
+      final token = await SecureStorage.getToken();
+
+      debugPrint('🌐 API URL: $baseUrl/detection/detect-body');
+      debugPrint('🔑 Token available: ${token != null}');
+      debugPrint('📁 Image path: $imagePath');
+
+      final uri = Uri.parse('$baseUrl/detection/detect-body');
+      final request = http.MultipartRequest('POST', uri);
+
+      // Add auth header
+      if (token != null) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+
+      // Add image file
+      request.files.add(await http.MultipartFile.fromPath('file', imagePath));
+
+      debugPrint('📤 Sending body detection request...');
+
+      // Send request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      debugPrint('📥 Status Code: ${response.statusCode}');
+      debugPrint('📥 Response Body: ${response.body}');
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'data': data};
+      } else {
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Body detection failed',
+        };
+      }
+    } catch (e, stackTrace) {
+      debugPrint('❌ detectBody Error: $e');
+      debugPrint('📚 Stack: $stackTrace');
+      return {'success': false, 'message': 'Gagal mendeteksi kulit tubuh: $e'};
+    }
+  }
   // ================= HISTORY API =================
 
-/// Get detection / skin analysis history
-static Future<Map<String, dynamic>> getHistory() async {
-  try {
-    final headers = await _getAuthHeaders();
-    final url = Uri.parse('$baseUrl/history');
+  /// Get detection / skin analysis history
+  static Future<Map<String, dynamic>> getHistory() async {
+    try {
+      final headers = await _getAuthHeaders();
+      final url = Uri.parse('$baseUrl/history');
 
-    final response = await (_client ?? http.Client()).get(
-      url,
-      headers: headers,
-    );
+      final response = await (_client ?? http.Client()).get(
+        url,
+        headers: headers,
+      );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'history': data['history'] ?? []};
+      }
+
       return {
-        'success': true,
-        'history': data['history'] ?? [],
+        'success': false,
+        'history': [],
+        'message': 'HTTP ${response.statusCode}',
       };
+    } catch (e) {
+      return {'success': false, 'history': [], 'message': e.toString()};
     }
-
-    return {
-      'success': false,
-      'history': [],
-      'message': 'HTTP ${response.statusCode}',
-    };
-  } catch (e) {
-    return {
-      'success': false,
-      'history': [],
-      'message': e.toString(),
-    };
   }
-}
 
-/// Get history detail (ID = STRING)
-static Future<Map<String, dynamic>> getHistoryDetail(String analysisId) async {
-  try {
-    final headers = await _getAuthHeaders();
-    final url = Uri.parse('$baseUrl/history/$analysisId');
+  /// Get history detail (ID = STRING)
+  static Future<Map<String, dynamic>> getHistoryDetail(
+    String analysisId,
+  ) async {
+    try {
+      final headers = await _getAuthHeaders();
+      final url = Uri.parse('$baseUrl/history/$analysisId');
 
-    final response = await (_client ?? http.Client()).get(
-      url,
-      headers: headers,
-    );
+      final response = await (_client ?? http.Client()).get(
+        url,
+        headers: headers,
+      );
 
-    final data = jsonDecode(response.body);
+      final data = jsonDecode(response.body);
 
-    return {
-      'success': response.statusCode == 200,
-      'data': data['data'],
-      'message': data['message'],
-    };
-  } catch (e) {
-    return {
-      'success': false,
-      'message': e.toString(),
-    };
+      return {
+        'success': response.statusCode == 200,
+        'data': data['data'],
+        'message': data['message'],
+      };
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
   }
-}
 
-/// Delete history (ID = STRING)
-static Future<Map<String, dynamic>> deleteHistory(String analysisId) async {
-  try {
-    final headers = await _getAuthHeaders();
-    final url = Uri.parse('$baseUrl/history/$analysisId');
+  /// Delete history (ID = STRING)
+  static Future<Map<String, dynamic>> deleteHistory(String analysisId) async {
+    try {
+      final headers = await _getAuthHeaders();
+      final url = Uri.parse('$baseUrl/history/$analysisId');
 
-    final response = await (_client ?? http.Client()).delete(
-      url,
-      headers: headers,
-    );
+      final response = await (_client ?? http.Client()).delete(
+        url,
+        headers: headers,
+      );
 
-    final data = jsonDecode(response.body);
+      final data = jsonDecode(response.body);
 
-    return {
-      'success': response.statusCode == 200,
-      'message': data['message'],
-    };
-  } catch (e) {
-    return {
-      'success': false,
-      'message': e.toString(),
-    };
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'],
+      };
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
   }
-}
 
+  /// Update notes for face analysis
+  static Future<Map<String, dynamic>> updateFaceNotes(
+    String analysisId,
+    String notes,
+  ) async {
+    try {
+      final headers = await _getAuthHeaders();
+      final url = Uri.parse('$baseUrl/history/$analysisId/notes');
 
+      final response = await (_client ?? http.Client()).patch(
+        url,
+        headers: headers,
+        body: jsonEncode({'notes': notes}),
+      );
 
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'],
+        'note': data['note'],
+      };
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  // ================= BODY HISTORY =================
+
+  /// Get body detection history
+  static Future<Map<String, dynamic>> getBodyHistory() async {
+    try {
+      final headers = await _getAuthHeaders();
+      final url = Uri.parse('$baseUrl/detection/body-history');
+
+      final response = await (_client ?? http.Client()).get(
+        url,
+        headers: headers,
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200,
+        'history': data['history'],
+        'message': data['message'],
+      };
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  /// Get body history detail
+  static Future<Map<String, dynamic>> getBodyHistoryDetail(
+    String analysisId,
+  ) async {
+    try {
+      final headers = await _getAuthHeaders();
+      final url = Uri.parse('$baseUrl/detection/body-history/$analysisId');
+
+      final response = await (_client ?? http.Client()).get(
+        url,
+        headers: headers,
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200,
+        'data': data['data'],
+        'message': data['message'],
+      };
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  /// Delete body history
+  static Future<Map<String, dynamic>> deleteBodyHistory(
+    String analysisId,
+  ) async {
+    try {
+      final headers = await _getAuthHeaders();
+      final url = Uri.parse('$baseUrl/detection/body-history/$analysisId');
+
+      final response = await (_client ?? http.Client()).delete(
+        url,
+        headers: headers,
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'],
+      };
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  /// Update notes for body analysis
+  static Future<Map<String, dynamic>> updateBodyNotes(
+    String analysisId,
+    String notes,
+  ) async {
+    try {
+      final headers = await _getAuthHeaders();
+      final url = Uri.parse(
+        '$baseUrl/detection/body-history/$analysisId/notes',
+      );
+
+      final response = await (_client ?? http.Client()).patch(
+        url,
+        headers: headers,
+        body: jsonEncode({'notes': notes}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'],
+        'note': data['note'],
+      };
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
 }
