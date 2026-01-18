@@ -4,15 +4,14 @@ import 'package:layout_x1/services/api_service.dart';
 import '../services/user_preferences.dart';
 
 class PantauKulitPage extends StatelessWidget {
-    final bool fromHistory;
+  final bool fromHistory;
 
-  const PantauKulitPage({super.key,this.fromHistory = false,});
+  const PantauKulitPage({super.key, this.fromHistory = false});
 
   @override
   Widget build(BuildContext context) {
     return SkinHealthTracker(showBackButton: fromHistory);
   }
-
 }
 
 // ================= MODELS =================
@@ -94,7 +93,7 @@ class SkinHealthTracker extends StatefulWidget {
   final bool showBackButton;
   const SkinHealthTracker({
     super.key,
-    this.showBackButton = false,  // ✅ Hapus "required", tambah default value
+    this.showBackButton = false, // ✅ Hapus "required", tambah default value
   });
 
   @override
@@ -486,12 +485,12 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
       appBar: AppBar(
         // Tampilkan back button HANYA jika showBackButton = true
         automaticallyImplyLeading: widget.showBackButton,
-        leading: widget.showBackButton 
-          ? IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.of(context).pop(),
-            )
-          : null,
+        leading: widget.showBackButton
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.of(context).pop(),
+              )
+            : null,
         title: const Text('Pemantau Kesehatan Kulit'),
         backgroundColor: const Color(0xFF0066CC),
         foregroundColor: Colors.white,
@@ -899,80 +898,80 @@ class _SkinHealthTrackerState extends State<SkinHealthTracker>
 
           // --- GRAFIK CUSTOM SEDERHANA (Kondisi Kulit 7 Hari Terakhir) ---
           Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Tren Kondisi Kulit (Terbaru)',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    height: 200,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: _historyData
-                          .take(7)
-                          .map((data) {
-                            // Logic warna bar
-                            Color barColor = data.skinScore >= 8
-                                ? Colors.red
-                                : data.skinScore >= 5
-                                ? Colors.orange
-                                : Colors.green;
+  elevation: 4,
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(12),
+  ),
+  child: Padding(
+    padding: const EdgeInsets.all(16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Tren Kondisi Kulit (Terbaru)',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 20),
+        SizedBox(
+          height: 400,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: _historyData.take(7).length,
+            itemBuilder: (context, index) {
+              final reversedIndex = _historyData.take(7).length - 1 - index;
+              final data = _historyData.take(7).toList()[reversedIndex];
+              
+              Color barColor = data.skinScore >= 8
+                  ? Colors.red
+                  : data.skinScore >= 5
+                  ? Colors.orange
+                  : Colors.green;
 
-                            String shortDate = data.date.split('-').last;
+              String shortDate = data.date.split('-').last;
+              double maxExpectedScore = 15.0;
+              double barHeight = (data.skinScore / maxExpectedScore) * 120;
 
-                            double maxExpectedScore = 15.0;
-                            double barHeight =
-                                (data.skinScore / maxExpectedScore) * 120;
-
-                            return Column(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Text(
-                                  data.skinScore.toStringAsFixed(1),
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Container(
-                                  width: 24,
-                                  height: barHeight,
-                                  decoration: BoxDecoration(
-                                    color: barColor,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  shortDate,
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
-                            );
-                          })
-                          .toList()
-                          .reversed
-                          .toList(),
+              return Container(
+                width: 50,
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      data.skinScore.toStringAsFixed(1),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
+                    const SizedBox(height: 4),
+                    Container(
+                      width: 24,
+                      height: barHeight,
+                      decoration: BoxDecoration(
+                        color: barColor,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      shortDate,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
+        ),
+      ],
+    ),
+  ),
+),
+const SizedBox(height: 24),
           const SizedBox(height: 24),
 
           // --- ANALISIS SINGKAT HARI TERAKHIR ---
