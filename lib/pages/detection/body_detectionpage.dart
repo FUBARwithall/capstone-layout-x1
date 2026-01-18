@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:layout_x1/services/api_service.dart';
@@ -18,6 +18,12 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
 
   // Detection result from API
   Map<String, dynamic>? detectionData;
+  String? currentAnalysisId; // Store analysis ID from detection
+
+  // Notes functionality
+  final TextEditingController _notesController = TextEditingController();
+  bool isEditingNotes = false;
+  bool isSavingNotes = false;
 
   // Function to pick image from gallery
   Future<void> _pickImageFromGallery() async {
@@ -71,6 +77,239 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
     }
   }
 
+  Future<void> _saveNotes() async {
+    if (currentAnalysisId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Tidak dapat menyimpan catatan: ID analisis tidak ditemukan',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => isSavingNotes = true);
+
+    final result = await ApiService.updateBodyNotes(
+      currentAnalysisId!,
+      _notesController.text.trim(),
+    );
+
+    if (!mounted) return;
+    setState(() => isSavingNotes = false);
+
+    if (result['success'] == true) {
+      setState(() {
+        isEditingNotes = false;
+        if (detectionData != null) {
+          detectionData!['note'] = result['note'];
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Catatan berhasil disimpan'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['message'] ?? 'Gagal menyimpan catatan'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _deleteNote() async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus Catatan'),
+        content: const Text('Apakah Anda yakin ingin menghapus catatan ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || currentAnalysisId == null) return;
+
+    setState(() => isSavingNotes = true);
+
+    final result = await ApiService.updateBodyNotes(
+      currentAnalysisId!,
+      '', // Empty string to delete
+    );
+
+    if (!mounted) return;
+    setState(() => isSavingNotes = false);
+
+    if (result['success'] == true) {
+      setState(() {
+        isEditingNotes = false;
+        _notesController.clear();
+        if (detectionData != null) {
+          detectionData!['note'] = null;
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Catatan berhasil dihapus'),
+          backgroundColor: Colors.blue,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['message'] ?? 'Gagal menghapus catatan'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _cancelEditNotes() {
+    setState(() {
+      isEditingNotes = false;
+      _notesController.text = detectionData?['note'] ?? '';
+    });
+  }
+
+  Widget _buildNotesSection() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF0066CC), width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.note_alt, color: Color(0xFF0066CC), size: 24),
+                  SizedBox(width: 10),
+                  Text(
+                    'Catatan Pribadi',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  if (value == 'edit') {
+                    setState(() => isEditingNotes = true);
+                  } else if (value == 'delete') {
+                    _deleteNote();
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                  if (_notesController.text.isNotEmpty)
+                    const PopupMenuItem(value: 'delete', child: Text('Hapus')),
+                ],
+              ),
+            ],
+          ),
+          const Divider(height: 24),
+          if (isEditingNotes)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextField(
+                  controller: _notesController,
+                  maxLines: 5,
+                  decoration: const InputDecoration(
+                    hintText: 'Tambahkan catatan...',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: isSavingNotes ? null : _cancelEditNotes,
+                      child: const Text('Batal'),
+                    ),
+                    ElevatedButton(
+                      onPressed: isSavingNotes ? null : _saveNotes,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0066CC),
+                      ),
+                      child: isSavingNotes
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              'Simpan',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                    ),
+                  ],
+                ),
+              ],
+            )
+          else
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  isEditingNotes = true;
+                  _notesController.text = detectionData?['note'] ?? '';
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: _notesController.text.isEmpty
+                      ? Colors.grey[100]
+                      : const Color(0xFF0066CC).withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: _notesController.text.isEmpty
+                        ? Colors.grey[300]!
+                        : const Color(0xFF0066CC).withOpacity(0.2),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _notesController.text.isEmpty
+                            ? 'Belum ada catatan.\nTap di sini untuk menambahkan catatan pribadi.'
+                            : _notesController.text,
+                        style: TextStyle(
+                          color: _notesController.text.isEmpty
+                              ? Colors.grey
+                              : const Color(0xFF2C2C2C),
+                          fontSize: 14,
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   // Show dialog to choose between camera and gallery
   void _showImageSourceDialog() {
     showDialog(
@@ -116,29 +355,33 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
     });
 
     try {
-      debugPrint('🔍 Starting body detection...');
-      debugPrint('📁 Image path: ${uploadedImage!.path}');
-      debugPrint('📊 File exists: ${uploadedImage!.existsSync()}');
-      debugPrint('📏 File size: ${uploadedImage!.lengthSync()} bytes');
+      debugPrint('­ƒöì Starting body detection...');
+      debugPrint('­ƒôü Image path: ${uploadedImage!.path}');
+      debugPrint('­ƒôè File exists: ${uploadedImage!.existsSync()}');
+      debugPrint('­ƒôÅ File size: ${uploadedImage!.lengthSync()} bytes');
 
       final result = await ApiService.detectBody(
         imagePath: uploadedImage!.path,
       );
 
-      debugPrint('📡 API Response: $result');
+      debugPrint('­ƒôí API Response: $result');
 
       if (mounted) {
         if (result['success']) {
           final data = result['data'];
-          debugPrint('✅ Detection success: $data');
+          debugPrint('Ô£à Detection success: $data');
 
           setState(() {
             detectionData = data;
+            currentAnalysisId = data['analysis_id']
+                ?.toString(); // Store analysis ID
             showResult = true;
             isLoading = false;
+            // Load notes if available (usually empty for new detection)
+            _notesController.text = data['note'] ?? '';
           });
         } else {
-          debugPrint('❌ Detection failed: ${result['message']}');
+          debugPrint('ÔØî Detection failed: ${result['message']}');
           setState(() {
             isLoading = false;
           });
@@ -151,8 +394,8 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
         }
       }
     } catch (e, stackTrace) {
-      debugPrint('💥 Exception in _detectBody: $e');
-      debugPrint('📚 Stack trace: $stackTrace');
+      debugPrint('­ƒÆÑ Exception in _detectBody: $e');
+      debugPrint('­ƒôÜ Stack trace: $stackTrace');
       if (mounted) {
         setState(() {
           isLoading = false;
@@ -206,9 +449,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
                       padding: EdgeInsets.only(top: 40),
                       child: Column(
                         children: [
-                          CircularProgressIndicator(
-                            color: Color(0xFF0066CC),
-                          ),
+                          CircularProgressIndicator(color: Color(0xFF0066CC)),
                           SizedBox(height: 16),
                           Text(
                             'Menganalisis kulit tubuh...',
@@ -224,6 +465,11 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
                     Padding(
                       padding: const EdgeInsets.only(top: 40),
                       child: _buildDetectionResult(constraints),
+                    ),
+                  if (showResult && detectionData != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 24),
+                      child: _buildNotesSection(),
                     ),
                 ],
               );
@@ -633,8 +879,12 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
                         _capitalizeFirst(entry.key),
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: isTop ? FontWeight.bold : FontWeight.normal,
-                          color: isTop ? Colors.purple : const Color(0xFF666666),
+                          fontWeight: isTop
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: isTop
+                              ? Colors.purple
+                              : const Color(0xFF666666),
                         ),
                       ),
                     ),
@@ -646,7 +896,9 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
                           value: percentage / 100,
                           backgroundColor: Colors.grey.shade300,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            isTop ? Colors.purple : Colors.purple.withValues(alpha: 0.5),
+                            isTop
+                                ? Colors.purple
+                                : Colors.purple.withValues(alpha: 0.5),
                           ),
                           minHeight: 8,
                         ),
@@ -659,8 +911,12 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
                         '${percentage.toStringAsFixed(1)}%',
                         style: TextStyle(
                           fontSize: 11,
-                          fontWeight: isTop ? FontWeight.bold : FontWeight.normal,
-                          color: isTop ? Colors.purple : const Color(0xFF666666),
+                          fontWeight: isTop
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: isTop
+                              ? Colors.purple
+                              : const Color(0xFF666666),
                         ),
                         textAlign: TextAlign.right,
                       ),

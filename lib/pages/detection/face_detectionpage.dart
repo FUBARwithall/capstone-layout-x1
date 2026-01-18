@@ -22,9 +22,15 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
 
   // Detection result from API
   Map<String, dynamic>? detectionData;
+  String? currentAnalysisId; // Store analysis ID from detection
 
   // Recommended products from database
   List<dynamic> recommendedProducts = [];
+
+  // Notes functionality
+  final TextEditingController _notesController = TextEditingController();
+  bool isEditingNotes = false;
+  bool isSavingNotes = false;
 
   String get imageBaseUrl => ApiService.baseUrl.replaceFirst('/api', '');
 
@@ -32,6 +38,12 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
   void initState() {
     super.initState();
     _loadUserId();
+  }
+
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadUserId() async {
@@ -137,6 +149,10 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
     setState(() {
       isLoading = true;
       recommendedProducts = [];
+      // Reset notes state for new detection
+      currentAnalysisId = null;
+      _notesController.clear();
+      isEditingNotes = false;
     });
 
     try {
@@ -172,9 +188,11 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
 
           setState(() {
             detectionData = data;
+            currentAnalysisId = data['analysis_id']?.toString();
             recommendedProducts = products;
             showResult = true;
             isLoading = false;
+            _notesController.text = data['note'] ?? '';
           });
         } else {
           debugPrint('❌ Detection failed: ${result['message']}');
@@ -501,6 +519,11 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
               ],
             ),
           ),
+
+          const SizedBox(height: 20),
+
+          // Notes Section
+          _buildNotesSection(),
         ],
       ),
     );
@@ -888,12 +911,277 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
 
   String _formatTimestamp(String timestamp) {
     try {
+      // Parse timestamp (will include timezone info if provided)
       final dt = DateTime.parse(timestamp);
-      return '${dt.day}/${dt.month}/${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+
+      // Convert to local time (WIB)
+      final localDt = dt.toLocal();
+
+      return '${localDt.day}/${localDt.month}/${localDt.year} ${localDt.hour.toString().padLeft(2, '0')}:${localDt.minute.toString().padLeft(2, '0')}';
     } catch (e) {
       return timestamp;
     }
   }
+
+  Future<void> _saveNotes() async {
+    if (currentAnalysisId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Tidak dapat menyimpan catatan: ID analisis tidak ditemukan',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => isSavingNotes = true);
+
+    final result = await ApiService.updateFaceNotes(
+      currentAnalysisId!,
+      _notesController.text.trim(),
+    );
+
+    if (!mounted) return;
+    setState(() => isSavingNotes = false);
+
+    if (result['success'] == true) {
+      setState(() {
+        isEditingNotes = false;
+        if (detectionData != null) {
+          detectionData!['note'] = result['note'];
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Catatan berhasil disimpan'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['message'] ?? 'Gagal menyimpan catatan'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _deleteNote() async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus Catatan'),
+        content: const Text('Apakah Anda yakin ingin menghapus catatan ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || currentAnalysisId == null) return;
+
+    setState(() => isSavingNotes = true);
+
+    final result = await ApiService.updateFaceNotes(currentAnalysisId!, '');
+
+    if (!mounted) return;
+    setState(() => isSavingNotes = false);
+
+    if (result['success'] == true) {
+      setState(() {
+        isEditingNotes = false;
+        _notesController.clear();
+        if (detectionData != null) {
+          detectionData!['note'] = null;
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Catatan berhasil dihapus'),
+          backgroundColor: Colors.blue,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['message'] ?? 'Gagal menghapus catatan'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _cancelEditNotes() {
+    setState(() {
+      isEditingNotes = false;
+      _notesController.text = detectionData?['note'] ?? '';
+    });
+  }
+
+  // Ganti fungsi _buildNotesSection() dengan code ini:
+
+Widget _buildNotesSection() {
+  return Container(
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: const Color(0xFF0066CC), width: 2),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.05),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.note_alt, color: Color(0xFF0066CC), size: 24),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'Catatan Pribadi',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2C2C2C),
+                ),
+              ),
+            ),
+            // Menu edit/hapus hanya muncul kalau ada catatan
+            if (_notesController.text.isNotEmpty)
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  if (value == 'edit') {
+                    setState(() => isEditingNotes = true);
+                  } else if (value == 'delete') {
+                    _deleteNote();
+                  }
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem(value: 'edit', child: Text('Edit')),
+                  PopupMenuItem(value: 'delete', child: Text('Hapus')),
+                ],
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        const Divider(height: 1, thickness: 1),
+        const SizedBox(height: 16),
+        if (isEditingNotes)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                controller: _notesController,
+                maxLines: 5,
+                decoration: InputDecoration(
+                  hintText: 'Tambahkan catatan pribadi Anda di sini...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFF0066CC)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF0066CC),
+                      width: 2,
+                    ),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: isSavingNotes ? null : _cancelEditNotes,
+                    child: const Text('Batal'),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: isSavingNotes ? null : _saveNotes,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0066CC),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: isSavingNotes
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Simpan'),
+                  ),
+                ],
+              ),
+            ],
+          )
+        else
+          GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () {
+              // Langsung masuk edit tanpa snack bar
+              setState(() => isEditingNotes = true);
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: _notesController.text.isEmpty
+                    ? Colors.grey[100]
+                    : const Color(0xFF0066CC).withOpacity(0.05),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: _notesController.text.isEmpty
+                      ? Colors.grey[300]!
+                      : const Color(0xFF0066CC).withOpacity(0.2),
+                ),
+              ),
+              child: Text(
+                _notesController.text.isEmpty
+                    ? 'Belum ada catatan.\nTap di sini untuk menambahkan catatan pribadi.'
+                    : _notesController.text,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.6,
+                  color: _notesController.text.isEmpty
+                      ? Colors.grey
+                      : const Color(0xFF2C2C2C),
+                  fontStyle: _notesController.text.isEmpty
+                      ? FontStyle.italic
+                      : FontStyle.normal,
+                ),
+              ),
+            ),
+          ),
+      ],
+    ),
+  );
+}
 
   Widget _buildRightImage() {
     return Align(

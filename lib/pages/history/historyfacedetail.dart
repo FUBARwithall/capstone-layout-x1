@@ -18,12 +18,22 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
   List<dynamic> recommendedProducts = [];
   int? userId;
 
+  // Notes functionality
+  final TextEditingController _notesController = TextEditingController();
+  bool isEditingNotes = false;
+  bool isSavingNotes = false;
+
   String get rootUrl => ApiService.baseUrl.replaceFirst('/api', '');
 
-  @override
   void initState() {
     super.initState();
     _loadInitialData();
+  }
+
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadInitialData() async {
@@ -47,7 +57,9 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
 
       List<dynamic> products = [];
       if (skinProblem != null && skinProblem.isNotEmpty && skinProblem != '-') {
-        final productResult = await ApiService.getProductsByCategory(skinProblem);
+        final productResult = await ApiService.getProductsByCategory(
+          skinProblem,
+        );
         if (productResult['success'] == true) {
           products = productResult['data'] ?? [];
         }
@@ -57,6 +69,8 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
         detectionData = data;
         recommendedProducts = products;
         isLoading = false;
+        // Load notes from server
+        _notesController.text = data?['note'] ?? '';
       });
     } else {
       setState(() => isLoading = false);
@@ -69,6 +83,103 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
     }
   }
 
+  Future<void> _saveNotes() async {
+    setState(() => isSavingNotes = true);
+
+    final result = await ApiService.updateFaceNotes(
+      widget.analysisId,
+      _notesController.text.trim(),
+    );
+
+    if (!mounted) return;
+    setState(() => isSavingNotes = false);
+
+    if (result['success'] == true) {
+      setState(() {
+        isEditingNotes = false;
+        if (detectionData != null) {
+          detectionData!['note'] = result['note'];
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Catatan berhasil disimpan'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['message'] ?? 'Gagal menyimpan catatan'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _deleteNote() async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus Catatan'),
+        content: const Text('Apakah Anda yakin ingin menghapus catatan ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => isSavingNotes = true);
+
+    final result = await ApiService.updateFaceNotes(
+      widget.analysisId,
+      '', // Empty string to delete
+    );
+
+    if (!mounted) return;
+    setState(() => isSavingNotes = false);
+
+    if (result['success'] == true) {
+      setState(() {
+        isEditingNotes = false;
+        _notesController.clear();
+        if (detectionData != null) {
+          detectionData!['note'] = null;
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Catatan berhasil dihapus'),
+          backgroundColor: Colors.blue,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['message'] ?? 'Gagal menghapus catatan'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _cancelEditNotes() {
+    setState(() {
+      isEditingNotes = false;
+      _notesController.text = detectionData?['note'] ?? '';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,52 +189,58 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
         title: const Text('Detail Riwayat Analisis'),
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF0066CC)))
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFF0066CC)),
+            )
           : detectionData == null
-              ? const Center(child: Text('Data tidak tersedia'))
-              : SafeArea(
-                  child: SingleChildScrollView(
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 1200),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 40.0,
-                            vertical: 40.0,
-                          ),
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              bool isWide = constraints.maxWidth > 800;
-                              return Column(
-                                children: [
-                                  if (isWide)
-                                    Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(child: _buildInfoText()),
-                                        const SizedBox(width: 60),
-                                        Expanded(child: _buildAnalysisImage()),
-                                      ],
-                                    )
-                                  else
-                                    Column(
-                                      children: [
-                                        _buildInfoText(),
-                                        const SizedBox(height: 32),
-                                        _buildAnalysisImage(),
-                                      ],
-                                    ),
-                                  const SizedBox(height: 40),
-                                  _buildDetectionResult(constraints),
-                                ],
-                              );
-                            },
-                          ),
-                        ),
+          ? const Center(child: Text('Data tidak tersedia'))
+          : SafeArea(
+              child: SingleChildScrollView(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1200),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 40.0,
+                        vertical: 40.0,
+                      ),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          bool isWide = constraints.maxWidth > 800;
+                          return Column(
+                            children: [
+                              if (isWide)
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(child: _buildInfoText()),
+                                    const SizedBox(width: 60),
+                                    Expanded(child: _buildAnalysisImage()),
+                                  ],
+                                )
+                              else
+                                Column(
+                                  children: [
+                                    _buildInfoText(),
+                                    const SizedBox(height: 32),
+                                    _buildAnalysisImage(),
+                                  ],
+                                ),
+                              const SizedBox(height: 40),
+                              _buildDetectionResult(constraints),
+
+                              // Notes Section
+                              const SizedBox(height: 24),
+                              _buildNotesSection(),
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ),
                 ),
+              ),
+            ),
     );
   }
 
@@ -168,7 +285,8 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
               ? Image.network(
                   fullUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => _imagePlaceholder(),
+                  errorBuilder: (context, error, stackTrace) =>
+                      _imagePlaceholder(),
                 )
               : _imagePlaceholder(),
         ),
@@ -178,7 +296,11 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
 
   Widget _imagePlaceholder() {
     return const Center(
-      child: Icon(Icons.image_not_supported_outlined, size: 48, color: Colors.grey),
+      child: Icon(
+        Icons.image_not_supported_outlined,
+        size: 48,
+        color: Colors.grey,
+      ),
     );
   }
 
@@ -281,8 +403,8 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
             icon: Icons.face,
             title: 'Jenis Kulit',
             result: skinType?['result']?.toString() ?? '-',
-            confidence: skinType?['confidence'] is num 
-                ? '${(skinType!['confidence'] as num).toStringAsFixed(1)}%' 
+            confidence: skinType?['confidence'] is num
+                ? '${(skinType!['confidence'] as num).toStringAsFixed(1)}%'
                 : skinType?['confidence']?.toString() ?? '-',
             color: Colors.blue,
           ),
@@ -294,8 +416,8 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
             icon: Icons.healing,
             title: 'Masalah Kulit',
             result: skinProblem?['result']?.toString() ?? '-',
-            confidence: skinProblem?['confidence'] is num 
-                ? '${(skinProblem!['confidence'] as num).toStringAsFixed(1)}%' 
+            confidence: skinProblem?['confidence'] is num
+                ? '${(skinProblem!['confidence'] as num).toStringAsFixed(1)}%'
                 : skinProblem?['confidence']?.toString() ?? '-',
             color: Colors.orange,
           ),
@@ -303,7 +425,10 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
           const SizedBox(height: 20),
 
           // Tips Section
-          _buildTipsSection(skinType?['result']?.toString(), skinProblem?['result']?.toString()),
+          _buildTipsSection(
+            skinType?['result']?.toString(),
+            skinProblem?['result']?.toString(),
+          ),
 
           const SizedBox(height: 20),
 
@@ -606,8 +731,11 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
 
     String formattedHarga = '-';
     if (harga != null) {
-      final numHarga = harga is num ? harga : double.tryParse(harga.toString()) ?? 0;
-      formattedHarga = 'Rp${numHarga.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
+      final numHarga = harga is num
+          ? harga
+          : double.tryParse(harga.toString()) ?? 0;
+      formattedHarga =
+          'Rp${numHarga.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
     }
 
     return GestureDetector(
@@ -616,10 +744,8 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ProductDetailPage(
-                    productId: productId,
-                    userId: userId!,
-                  ),
+                  builder: (context) =>
+                      ProductDetailPage(productId: productId, userId: userId!),
                 ),
               );
             }
@@ -646,7 +772,9 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: Colors.grey[200],
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(12),
+                  ),
                 ),
                 child: Image.network(
                   '$rootUrl/web/uploads/$image',
@@ -711,10 +839,138 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
     );
   }
 
+  Widget _buildNotesSection() {
+  return Container(
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: const Color(0xFF0066CC), width: 2),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.note_alt, color: Color(0xFF0066CC), size: 24),
+                SizedBox(width: 10),
+                Text(
+                  'Catatan Pribadi',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2C2C2C),
+                  ),
+                ),
+              ],
+            ),
+            if (_notesController.text.isNotEmpty)
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  if (value == 'edit') {
+                    setState(() => isEditingNotes = true);
+                  } else if (value == 'delete') {
+                    _deleteNote();
+                  }
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem(value: 'edit', child: Text('Edit')),
+                  PopupMenuItem(value: 'delete', child: Text('Hapus')),
+                ],
+              ),
+          ],
+        ),
+        const Divider(height: 24),
+        if (isEditingNotes)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                controller: _notesController,
+                maxLines: 5,
+                decoration: const InputDecoration(
+                  hintText: 'Tambahkan catatan...',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: isSavingNotes ? null : _cancelEditNotes,
+                    child: const Text('Batal'),
+                  ),
+                  ElevatedButton(
+                    onPressed: isSavingNotes ? null : _saveNotes,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0066CC),
+                    ),
+                    child: isSavingNotes
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                            'Simpan',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                  ),
+                ],
+              ),
+            ],
+          )
+        else
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                isEditingNotes = true;
+                _notesController.text = detectionData?['note'] ?? '';
+              });
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: _notesController.text.isEmpty
+                    ? Colors.grey[100]
+                    : const Color(0xFF0066CC).withOpacity(0.05),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: _notesController.text.isEmpty
+                      ? Colors.grey[300]!
+                      : const Color(0xFF0066CC).withOpacity(0.2),
+                ),
+              ),
+              child: Text(
+                _notesController.text.isEmpty
+                    ? 'Belum ada catatan.\nTap di sini untuk menambahkan catatan pribadi.'
+                    : _notesController.text,
+                style: TextStyle(
+                  color: _notesController.text.isEmpty
+                      ? Colors.grey
+                      : const Color(0xFF2C2C2C),
+                  fontSize: 14,
+                  height: 1.6,
+                ),
+              ),
+            ),
+          ),
+      ],
+    ),
+  );
+}
+
+
   String _formatTimestamp(String timestamp) {
     try {
+      // Parse timestamp (will include timezone info if provided)
       final dt = DateTime.parse(timestamp);
-      return '${dt.day}/${dt.month}/${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+
+      // Convert to local time (WIB)
+      final localDt = dt.toLocal();
+
+      return '${localDt.day}/${localDt.month}/${localDt.year} ${localDt.hour.toString().padLeft(2, '0')}:${localDt.minute.toString().padLeft(2, '0')}';
     } catch (e) {
       return timestamp;
     }

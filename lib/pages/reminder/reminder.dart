@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../services/notification_service.dart';
 import '../../services/secure_storage.dart';
 
@@ -15,13 +17,10 @@ class ReminderSkincare extends StatefulWidget {
 
 class _ReminderSkincareState extends State<ReminderSkincare> {
   final Color skinTone = const Color(0xFFF5F5DC);
-
+  
   /// GANTI SESUAI SERVER
-    final String baseUrl = 'https://propagatory-jeremiah-fully.ngrok-free.dev/api';
-  // final String baseUrl = 'http://192.168.56.1:5000/api';
+  final String baseUrl = 'https://nonrelativistic-amalia-unconflictingly.ngrok-free.dev/api';
 
-
-  /// Cegah double async per reminder
   final Set<int> _processingIndex = {};
 
   final List<Map<String, dynamic>> reminders = [
@@ -65,8 +64,6 @@ class _ReminderSkincareState extends State<ReminderSkincare> {
         .toList();
     _loadRemindersFromApi();
   }
-
-  // ================= UI =================
 
   @override
   Widget build(BuildContext context) {
@@ -130,7 +127,6 @@ class _ReminderSkincareState extends State<ReminderSkincare> {
                       ),
                     ],
                   ),
-
                   const Divider(),
 
                   /// TASKS
@@ -168,18 +164,21 @@ class _ReminderSkincareState extends State<ReminderSkincare> {
     );
   }
 
-  // ================= LOGIC =================
-
   String _typeFromIndex(int index) {
-    return index == 0
-        ? 'morning'
-        : index == 1
-            ? 'afternoon'
-            : 'night';
+    return index == 0 ? 'morning' : index == 1 ? 'afternoon' : 'night';
   }
 
+  /// Handle enable dengan pre-check permission
   Future<void> _handleEnable(int index) async {
     if (_processingIndex.contains(index)) return;
+
+    // CEK PERMISSION DULU sebelum timepicker
+    final canSchedule = await NotificationService.canScheduleExactAlarms();
+    
+    if (!canSchedule && !kIsWeb) {
+      _showPermissionDialog();
+      return;
+    }
 
     final picked = await showTimePicker(
       context: context,
@@ -188,7 +187,6 @@ class _ReminderSkincareState extends State<ReminderSkincare> {
 
     if (!mounted || picked == null) return;
 
-    /// UI langsung update → TIDAK LAG
     setState(() {
       reminders[index]['enabled'] = true;
       reminders[index]['time'] = picked;
@@ -204,17 +202,31 @@ class _ReminderSkincareState extends State<ReminderSkincare> {
     try {
       final t = reminders[index]['time'] as TimeOfDay;
 
+      // Save ke API
       await _saveToApi(index, true);
 
+      // Schedule notifikasi
       if (!kIsWeb) {
         await NotificationService.cancel(index + 1);
-        await NotificationService.scheduleDaily(
-          id: index + 1,
-          hour: t.hour,
-          minute: t.minute,
-          title: 'Reminder Skincare',
-          body: 'Waktunya skincare ${reminders[index]['label']} ✨',
-        );
+        
+        try {
+          await NotificationService.scheduleDaily(
+            id: index + 1,
+            hour: t.hour,
+            minute: t.minute,
+            title: 'Reminder Skincare',
+            body: 'Waktunya skincare ${reminders[index]['label']} ✨',
+          );
+        } on PlatformException catch (e) {
+          if (e.code == 'PERMISSION_DENIED') {
+            if (mounted) {
+              _showPermissionDialog();
+            }
+            _rollbackState(index);
+            return;
+          }
+          rethrow;
+        }
       }
 
       if (mounted) {
@@ -227,25 +239,126 @@ class _ReminderSkincareState extends State<ReminderSkincare> {
       }
     } catch (e) {
       debugPrint('Enable reminder error: $e');
-      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error mengaktifkan reminder: $e'),
+            content: Text('Error: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
       }
-
-      if (mounted) {
-        setState(() {
-          reminders[index]['enabled'] = false;
-          reminders[index]['time'] = null;
-        });
-      }
+      _rollbackState(index);
     } finally {
       _processingIndex.remove(index);
     }
+  }
+
+  void _rollbackState(int index) {
+    if (mounted) {
+      setState(() {
+        reminders[index]['enabled'] = false;
+        reminders[index]['time'] = null;
+      });
+    }
+  }
+
+  /// Dialog permission yang lebih clean
+  void _showPermissionDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.alarm, color: Colors.orange),
+            SizedBox(width: 10),
+            Text('Izin Diperlukan'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Aplikasi memerlukan izin untuk menyetel alarm dan pengingat.\n',
+              style: TextStyle(fontSize: 14),
+            ),
+            const Text(
+              'Langkah-langkah:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            _buildInstructionStep('1', 'Tap "Buka Pengaturan"'),
+            _buildInstructionStep('2', 'Cari "Alarms & reminders"'),
+            _buildInstructionStep('3', 'Aktifkan toggle-nya'),
+            _buildInstructionStep('4', 'Kembali dan coba lagi'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () async {
+              Navigator.pop(context);
+              await openAppSettings();
+              
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Aktifkan "Alarms & reminders", lalu kembali dan coba lagi',
+                    ),
+                    backgroundColor: Colors.blue,
+                    duration: Duration(seconds: 4),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0066CC),
+              foregroundColor: Colors.white,
+            ),
+            icon: const Icon(Icons.settings),
+            label: const Text('Buka Pengaturan'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInstructionStep(String number, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 24,
+            height: 24,
+            decoration: const BoxDecoration(
+              color: Color(0xFF0066CC),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                number,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(text, style: const TextStyle(fontSize: 13)),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _disableReminder(int index) async {
@@ -273,7 +386,6 @@ class _ReminderSkincareState extends State<ReminderSkincare> {
       }
     } catch (e) {
       debugPrint('Disable reminder error: $e');
-      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -287,14 +399,11 @@ class _ReminderSkincareState extends State<ReminderSkincare> {
     }
   }
 
-  // ================= API =================
-
   Future<void> _saveToApi(int index, bool isActive) async {
     final t = reminders[index]['time'] as TimeOfDay?;
     final token = await SecureStorage.getToken();
 
     if (token == null) {
-      debugPrint('No token found, user may not be logged in');
       throw Exception('Token tidak ditemukan. Silakan login kembali');
     }
 
@@ -321,32 +430,21 @@ class _ReminderSkincareState extends State<ReminderSkincare> {
         throw Exception('Server error: ${response.statusCode}');
       }
     } on TimeoutException {
-      debugPrint('API request timeout');
       throw Exception('Koneksi ke server timeout. Cek koneksi internet Anda');
-    } catch (e) {
-      debugPrint('API Error: $e');
-      rethrow;
     }
   }
 
   Future<void> _loadRemindersFromApi() async {
     try {
       final token = await SecureStorage.getToken();
+      if (token == null) return;
 
-      if (token == null) {
-        debugPrint('No token found, user may not be logged in');
-        return;
-      }
-
-      debugPrint('Loading reminders from API...');
       final res = await http
           .get(
             Uri.parse('$baseUrl/reminders'),
             headers: {'Authorization': 'Bearer $token'},
           )
           .timeout(const Duration(seconds: 10));
-
-      debugPrint('Reminders API Response: ${res.statusCode} - ${res.body}');
 
       if (res.statusCode != 200) {
         throw Exception('Failed to load reminders: ${res.statusCode}');
@@ -361,18 +459,19 @@ class _ReminderSkincareState extends State<ReminderSkincare> {
               : item['type'] == 'afternoon'
                   ? 1
                   : 2;
-
+          
           reminders[index]['enabled'] = item['is_active'] == 1;
+          
           if (item['is_active'] == 1) {
-            reminders[index]['time'] =
-                TimeOfDay(hour: item['hour'], minute: item['minute']);
+            reminders[index]['time'] = TimeOfDay(
+              hour: item['hour'],
+              minute: item['minute'],
+            );
           }
         }
       });
 
       debugPrint('Reminders loaded successfully');
-    } on TimeoutException {
-      debugPrint('Load reminders timeout');
     } catch (e) {
       debugPrint('Load reminder error: $e');
     }
