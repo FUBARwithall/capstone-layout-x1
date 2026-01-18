@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../services/notification_service.dart';
 import '../../services/secure_storage.dart';
+import '../../services/api_service.dart';
 
 class ReminderSkincare extends StatefulWidget {
   const ReminderSkincare({super.key});
@@ -16,11 +17,6 @@ class ReminderSkincare extends StatefulWidget {
 }
 
 class _ReminderSkincareState extends State<ReminderSkincare> {
-  final Color skinTone = const Color(0xFFF5F5DC);
-  
-  /// GANTI SESUAI SERVER
-  final String baseUrl = 'https://nonrelativistic-amalia-unconflictingly.ngrok-free.dev/api';
-
   final Set<int> _processingIndex = {};
 
   final List<Map<String, dynamic>> reminders = [
@@ -81,7 +77,7 @@ class _ReminderSkincareState extends State<ReminderSkincare> {
           final tasks = r['tasks'] as List<String>;
 
           return Card(
-            color: skinTone,
+            color: const Color(0xFFF5F5DC),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -410,7 +406,7 @@ class _ReminderSkincareState extends State<ReminderSkincare> {
     try {
       final response = await http
           .post(
-            Uri.parse('$baseUrl/reminders'),
+            Uri.parse('${ApiService.baseUrl}/reminders'),
             headers: {
               'Authorization': 'Bearer $token',
               'Content-Type': 'application/json',
@@ -441,7 +437,7 @@ class _ReminderSkincareState extends State<ReminderSkincare> {
 
       final res = await http
           .get(
-            Uri.parse('$baseUrl/reminders'),
+            Uri.parse('${ApiService.baseUrl}/reminders'),
             headers: {'Authorization': 'Bearer $token'},
           )
           .timeout(const Duration(seconds: 10));

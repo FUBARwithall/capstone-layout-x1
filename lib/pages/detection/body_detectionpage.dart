@@ -104,7 +104,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
       setState(() {
         isEditingNotes = false;
         if (detectionData != null) {
-          detectionData!['note'] = result['note'];
+          detectionData!['notes'] = result['notes'];
         }
       });
       ScaffoldMessenger.of(context).showSnackBar(
@@ -160,7 +160,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
         isEditingNotes = false;
         _notesController.clear();
         if (detectionData != null) {
-          detectionData!['note'] = null;
+          detectionData!['notes'] = null;
         }
       });
       ScaffoldMessenger.of(context).showSnackBar(
@@ -182,7 +182,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
   void _cancelEditNotes() {
     setState(() {
       isEditingNotes = false;
-      _notesController.text = detectionData?['note'] ?? '';
+      _notesController.text = detectionData?['notes'] ?? '';
     });
   }
 
@@ -268,7 +268,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
               onTap: () {
                 setState(() {
                   isEditingNotes = true;
-                  _notesController.text = detectionData?['note'] ?? '';
+                  _notesController.text = detectionData?['notes'] ?? '';
                 });
               },
               child: Container(
@@ -378,7 +378,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
             showResult = true;
             isLoading = false;
             // Load notes if available (usually empty for new detection)
-            _notesController.text = data['note'] ?? '';
+            _notesController.text = data['notes'] ?? '';
           });
         } else {
           debugPrint('ÔØî Detection failed: ${result['message']}');

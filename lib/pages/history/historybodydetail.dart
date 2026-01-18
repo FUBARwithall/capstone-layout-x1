@@ -54,7 +54,7 @@ class _HistoryBodyDetailPageState extends State<HistoryBodyDetailPage> {
         detectionData = data;
         isLoading = false;
         // Load notes from server
-        _notesController.text = data?['note'] ?? '';
+        _notesController.text = data?['notes'] ?? '';
       });
     } else {
       setState(() => isLoading = false);
@@ -82,7 +82,7 @@ class _HistoryBodyDetailPageState extends State<HistoryBodyDetailPage> {
       setState(() {
         isEditingNotes = false;
         if (detectionData != null) {
-          detectionData!['note'] = result['note'];
+          detectionData!['notes'] = result['notes'];
         }
       });
       ScaffoldMessenger.of(context).showSnackBar(
@@ -138,7 +138,7 @@ class _HistoryBodyDetailPageState extends State<HistoryBodyDetailPage> {
         isEditingNotes = false;
         _notesController.clear();
         if (detectionData != null) {
-          detectionData!['note'] = null;
+          detectionData!['notes'] = null;
         }
       });
       ScaffoldMessenger.of(context).showSnackBar(
@@ -160,7 +160,7 @@ class _HistoryBodyDetailPageState extends State<HistoryBodyDetailPage> {
   void _cancelEditNotes() {
     setState(() {
       isEditingNotes = false;
-      _notesController.text = detectionData?['note'] ?? '';
+      _notesController.text = detectionData?['notes'] ?? '';
     });
   }
 
@@ -571,7 +571,7 @@ class _HistoryBodyDetailPageState extends State<HistoryBodyDetailPage> {
               onTap: () {
                 setState(() {
                   isEditingNotes = true;
-                  _notesController.text = detectionData?['note'] ?? '';
+                  _notesController.text = detectionData?['notes'] ?? '';
                 });
               },
               child: Container(

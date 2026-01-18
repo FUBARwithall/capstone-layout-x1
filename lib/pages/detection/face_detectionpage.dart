@@ -192,7 +192,7 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
             recommendedProducts = products;
             showResult = true;
             isLoading = false;
-            _notesController.text = data['note'] ?? '';
+            _notesController.text = data['notes'] ?? '';
           });
         } else {
           debugPrint('❌ Detection failed: ${result['message']}');
@@ -950,7 +950,7 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
       setState(() {
         isEditingNotes = false;
         if (detectionData != null) {
-          detectionData!['note'] = result['note'];
+          detectionData!['notes'] = result['notes'];
         }
       });
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1003,7 +1003,7 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
         isEditingNotes = false;
         _notesController.clear();
         if (detectionData != null) {
-          detectionData!['note'] = null;
+          detectionData!['notes'] = null;
         }
       });
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1025,7 +1025,7 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
   void _cancelEditNotes() {
     setState(() {
       isEditingNotes = false;
-      _notesController.text = detectionData?['note'] ?? '';
+      _notesController.text = detectionData?['notes'] ?? '';
     });
   }
 

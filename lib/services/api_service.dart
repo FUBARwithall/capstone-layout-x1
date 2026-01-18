@@ -913,7 +913,7 @@ class ApiService {
       return {
         'success': response.statusCode == 200,
         'message': data['message'],
-        'note': data['note'],
+        'notes': data['notes'],
       };
     } catch (e) {
       return {'success': false, 'message': e.toString()};
@@ -1016,7 +1016,7 @@ class ApiService {
       return {
         'success': response.statusCode == 200,
         'message': data['message'],
-        'note': data['note'],
+        'notes': data['notes'],
       };
     } catch (e) {
       return {'success': false, 'message': e.toString()};
