@@ -166,11 +166,13 @@ class _HistoryBodyDetailPageState extends State<HistoryBodyDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF0066CC),
         foregroundColor: Colors.white,
         title: const Text('Detail Riwayat Penyakit Tubuh'),
+        centerTitle: true,
       ),
       body: isLoading
           ? const Center(
@@ -180,46 +182,38 @@ class _HistoryBodyDetailPageState extends State<HistoryBodyDetailPage> {
           ? const Center(child: Text('Data tidak tersedia'))
           : SafeArea(
               child: SingleChildScrollView(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1200),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20.0,
-                        vertical: 30.0,
-                      ),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          bool isWide = constraints.maxWidth > 800;
-                          return Column(
-                            children: [
-                              if (isWide)
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(child: _buildInfoText()),
-                                    const SizedBox(width: 40),
-                                    Expanded(child: _buildAnalysisImage()),
-                                  ],
-                                )
-                              else
-                                Column(
-                                  children: [
-                                    _buildInfoText(),
-                                    const SizedBox(height: 32),
-                                    _buildAnalysisImage(),
-                                  ],
-                                ),
-                              const SizedBox(height: 40),
-                              _buildDetectionResult(constraints),
-                              const SizedBox(height: 24),
-                              _buildNotesSection(),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                  ),
+                padding: EdgeInsets.symmetric(
+                  horizontal: screenWidth < 600 ? 20 : screenWidth * 0.1,
+                  vertical: 30,
+                ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    bool isWide = constraints.maxWidth > 800;
+                    return Column(
+                      children: [
+                        isWide
+                            ? Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(child: _buildInfoText()),
+                                  const SizedBox(width: 40),
+                                  Expanded(child: _buildAnalysisImage()),
+                                ],
+                              )
+                            : Column(
+                                children: [
+                                  _buildInfoText(),
+                                  const SizedBox(height: 32),
+                                  _buildAnalysisImage(),
+                                ],
+                              ),
+                        const SizedBox(height: 40),
+                        _buildDetectionResult(constraints),
+                        const SizedBox(height: 24),
+                        _buildNotesSection(),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),

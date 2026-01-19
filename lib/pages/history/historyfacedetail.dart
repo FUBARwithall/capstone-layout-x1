@@ -182,11 +182,13 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF0066CC),
         foregroundColor: Colors.white,
         title: const Text('Detail Riwayat Analisis'),
+        centerTitle: true,
       ),
       body: isLoading
           ? const Center(
@@ -196,48 +198,40 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
           ? const Center(child: Text('Data tidak tersedia'))
           : SafeArea(
               child: SingleChildScrollView(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1200),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 40.0,
-                        vertical: 40.0,
-                      ),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          bool isWide = constraints.maxWidth > 800;
-                          return Column(
-                            children: [
-                              if (isWide)
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(child: _buildInfoText()),
-                                    const SizedBox(width: 60),
-                                    Expanded(child: _buildAnalysisImage()),
-                                  ],
-                                )
-                              else
-                                Column(
-                                  children: [
-                                    _buildInfoText(),
-                                    const SizedBox(height: 32),
-                                    _buildAnalysisImage(),
-                                  ],
-                                ),
-                              const SizedBox(height: 40),
-                              _buildDetectionResult(constraints),
+                padding: EdgeInsets.symmetric(
+                  horizontal: screenWidth < 600 ? 20 : screenWidth * 0.1,
+                  vertical: 30,
+                ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    bool isWide = constraints.maxWidth > 800;
+                    return Column(
+                      children: [
+                        isWide
+                            ? Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(child: _buildInfoText()),
+                                  const SizedBox(width: 40),
+                                  Expanded(child: _buildAnalysisImage()),
+                                ],
+                              )
+                            : Column(
+                                children: [
+                                  _buildInfoText(),
+                                  const SizedBox(height: 32),
+                                  _buildAnalysisImage(),
+                                ],
+                              ),
+                        const SizedBox(height: 40),
+                        _buildDetectionResult(constraints),
 
-                              // Notes Section
-                              const SizedBox(height: 24),
-                              _buildNotesSection(),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                  ),
+                        // Notes Section
+                        const SizedBox(height: 24),
+                        _buildNotesSection(),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
