@@ -223,74 +223,68 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF0066CC),
         foregroundColor: Colors.white,
         title: const Text('Deteksi Wajah'),
+        centerTitle: true,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1200),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 40.0,
-                  vertical: 40.0,
-                ),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    bool isWide = constraints.maxWidth > 800;
-                    return Column(
-                      children: [
-                        if (isWide)
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(child: _buildLeftContent()),
-                              const SizedBox(width: 60),
-                              Expanded(child: _buildRightImage()),
-                            ],
-                          )
-                        else
-                          Column(
-                            children: [
-                              _buildLeftContent(),
-                              const SizedBox(height: 32),
-                              _buildRightImage(),
-                            ],
+          padding: EdgeInsets.symmetric(
+            horizontal: screenWidth < 600 ? 20 : screenWidth * 0.1,
+            vertical: 30,
+          ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              bool isWide = constraints.maxWidth > 800;
+              return Column(
+                children: [
+                  isWide
+                      ? Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(child: _buildLeftContent()),
+                            const SizedBox(width: 40),
+                            Expanded(child: _buildRightImage()),
+                          ],
+                        )
+                      : Column(
+                          children: [
+                            _buildLeftContent(),
+                            const SizedBox(height: 32),
+                            _buildRightImage(),
+                          ],
+                        ),
+                  if (isLoading)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 40),
+                      child: Column(
+                        children: [
+                          CircularProgressIndicator(
+                            color: Color(0xFF0066CC),
                           ),
-                        if (isLoading)
-                          const Padding(
-                            padding: EdgeInsets.only(top: 40),
-                            child: Column(
-                              children: [
-                                CircularProgressIndicator(
-                                  color: Color(0xFF0066CC),
-                                ),
-                                SizedBox(height: 16),
-                                Text(
-                                  'Menganalisis wajah...',
-                                  style: TextStyle(
-                                    color: Color(0xFF5C5C5C),
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
+                          SizedBox(height: 16),
+                          Text(
+                            'Menganalisis wajah...',
+                            style: TextStyle(
+                              color: Color(0xFF5C5C5C),
+                              fontSize: 14,
                             ),
                           ),
-                        if (showResult && detectionData != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 40),
-                            child: _buildDetectionResult(constraints),
-                          ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ),
+                        ],
+                      ),
+                    ),
+                  if (showResult && detectionData != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 40),
+                      child: _buildDetectionResult(constraints),
+                    ),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -367,82 +361,85 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
   final skinProblem = detectionData!['skin_problem_analysis'];
   final timestamp = detectionData!['timestamp'] ?? '';
 
-  return Container(
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: const Color(0xFF0066CC), width: 2),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.05),
-          blurRadius: 10,
-          offset: const Offset(0, 4),
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header
-        Row(
-          children: [
-            const Icon(
-              Icons.medical_information,
-              color: Color(0xFF0066CC),
-              size: 28,
-            ),
-            const SizedBox(width: 10),
-            const Expanded(
-              child: Text(
-                'Hasil Deteksi Wajah',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C2C2C),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        // Tombol Pantau Kulit - FULL WIDTH
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const PantauKulitPage(fromHistory: true,),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.teal,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-            ),
-            icon: const Icon(
-              Icons.monitor_heart,
-              size: 20,
-              color: Colors.white,
-            ),
-            label: const Text(
-              'Pantau Kulit',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
-            ),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF0066CC), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-        ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.medical_information,
+                      color: Color(0xFF0066CC),
+                      size: 28,
+                    ),
+                    const SizedBox(width: 10),
+                    const Flexible(
+                      child: Text(
+                        'Hasil Deteksi Wajah',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2C2C2C),
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PantauKulitPage(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                ),
+                icon: const Icon(
+                  Icons.monitor_heart,
+                  size: 20,
+                  color: Colors.white,
+                ),
+                label: const Text(
+                  'Pantau Kulit',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
 
         if (timestamp.isNotEmpty)
           Padding(
