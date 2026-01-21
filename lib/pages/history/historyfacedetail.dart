@@ -2,11 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:layout_x1/pages/pantaupage.dart';
 import 'package:layout_x1/services/api_service.dart';
 import 'package:layout_x1/pages/products/productdetailpage.dart';
+import 'package:layout_x1/pages/products/productcategorydetailpage.dart';
 import 'package:layout_x1/services/user_preferences.dart';
 
 class HistoryDetailPage extends StatefulWidget {
   final String analysisId;
-  const HistoryDetailPage({super.key, required this.analysisId});
+  final int categoryId;
+  final String categoryName;
+
+  const HistoryDetailPage({
+    super.key,
+    required this.analysisId,
+    required this.categoryId,
+    required this.categoryName,
+  });
 
   @override
   State<HistoryDetailPage> createState() => _HistoryDetailPageState();
@@ -187,7 +196,7 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0066CC),
         foregroundColor: Colors.white,
-        title: const Text('Detail Riwayat Analisis'),
+        title: const Text('Detail Riwayat Deteksi Kulit Wajah', style: TextStyle(fontSize: 18)),
         centerTitle: true,
       ),
       body: isLoading
@@ -341,7 +350,8 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const PantauKulitPage(fromHistory: true),
+                    builder: (context) =>
+                        const PantauKulitPage(fromHistory: true),
                   ),
                 );
               },
@@ -439,7 +449,7 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Hasil deteksi ini adalah perkiraan berdasarkan AI. Konsultasikan dengan dermatolog untuk diagnosis yang akurat.',
+                    'Hasil deteksi ini adalah perkiraan berdasarkan AI. Konsultasikan dengan dermatolog untuk diagnosis yang akurat. Konsultasikan dengan dokter untuk diagnosis dan pengobatan yang tepat.',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.amber.shade900,
@@ -689,7 +699,9 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: recommendedProducts.length,
+          itemCount: recommendedProducts.length > 2
+                      ? 2
+                      : recommendedProducts.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
             childAspectRatio: childAspectRatio,
@@ -701,6 +713,43 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
             return _buildProductCard(product);
           },
         ),
+
+        if (recommendedProducts.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () {
+                // Ambil category dari hasil deteksi
+                final skinProblemCategoryId =
+                    detectionData?['skin_problem_analysis']?['category_id'];
+                final skinProblemCategoryName =
+                    detectionData?['skin_problem_analysis']?['result'] ?? '';
+
+                // Navigasi ke ProductCategoryDetailPage
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProductCategoryDetailPage(
+                      userId: userId!,
+                      jenisObat:
+                          skinProblemCategoryName, // nama kategori/masalah kulit
+                      categoryId:
+                          skinProblemCategoryId, // id kategori dari hasil deteksi
+                    ),
+                  ),
+                );
+              },
+              child: const Text(
+                'Lihat Produk Lainnya',
+                style: TextStyle(
+                  color: Color(0xFF0066CC),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -760,7 +809,11 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
                   ),
                 ),
                 child: Image.network(
-                  '$rootUrl/web/uploads/$image',
+                  (image != null &&
+                          image.isNotEmpty &&
+                          image.startsWith('http'))
+                      ? image
+                      : '$rootUrl/web/uploads/${image ?? ''}',
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     return const Center(
@@ -829,27 +882,32 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFF0066CC), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
-                children: [
-                  Icon(Icons.note_alt, color: Color(0xFF0066CC), size: 24),
-                  SizedBox(width: 10),
-                  Text(
-                    'Catatan Pribadi',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2C2C2C),
-                    ),
+              const Icon(Icons.note_alt, color: Color(0xFF0066CC), size: 24),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Catatan Pribadi',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2C2C2C),
                   ),
-                ],
+                ),
               ),
+              // Menu edit/hapus hanya muncul kalau ada catatan
               if (_notesController.text.isNotEmpty)
                 PopupMenuButton<String>(
                   onSelected: (value) {
@@ -866,7 +924,9 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
                 ),
             ],
           ),
-          const Divider(height: 24),
+          const SizedBox(height: 12),
+          const Divider(height: 1, thickness: 1),
+          const SizedBox(height: 16),
           if (isEditingNotes)
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -874,9 +934,21 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
                 TextField(
                   controller: _notesController,
                   maxLines: 5,
-                  decoration: const InputDecoration(
-                    hintText: 'Tambahkan catatan...',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    hintText: 'Tambahkan catatan pribadi Anda di sini...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF0066CC)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF0066CC),
+                        width: 2,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[50],
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -887,17 +959,26 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
                       onPressed: isSavingNotes ? null : _cancelEditNotes,
                       child: const Text('Batal'),
                     ),
+                    const SizedBox(width: 8),
                     ElevatedButton(
                       onPressed: isSavingNotes ? null : _saveNotes,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0066CC),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                       child: isSavingNotes
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text(
-                              'Simpan',
-                              style: TextStyle(color: Colors.white),
-                            ),
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text('Simpan'),
                     ),
                   ],
                 ),
@@ -905,11 +986,10 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
             )
           else
             GestureDetector(
+              behavior: HitTestBehavior.translucent,
               onTap: () {
-                setState(() {
-                  isEditingNotes = true;
-                  _notesController.text = detectionData?['note'] ?? '';
-                });
+                // Langsung masuk edit tanpa snack bar
+                setState(() => isEditingNotes = true);
               },
               child: Container(
                 width: double.infinity,
@@ -930,11 +1010,14 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
                       ? 'Belum ada catatan.\nTap di sini untuk menambahkan catatan pribadi.'
                       : _notesController.text,
                   style: TextStyle(
+                    fontSize: 14,
+                    height: 1.6,
                     color: _notesController.text.isEmpty
                         ? Colors.grey
                         : const Color(0xFF2C2C2C),
-                    fontSize: 14,
-                    height: 1.6,
+                    fontStyle: _notesController.text.isEmpty
+                        ? FontStyle.italic
+                        : FontStyle.normal,
                   ),
                 ),
               ),

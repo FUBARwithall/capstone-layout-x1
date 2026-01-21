@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:layout_x1/pages/auth/login_page.dart';
 import 'package:layout_x1/pages/history/history.dart';
+import 'package:layout_x1/pages/tentangkami.dart';
 import '../services/user_preferences.dart';
 import '../services/secure_storage.dart'; // Add this import
-
 
 class Pengaturan extends StatefulWidget {
   const Pengaturan({super.key});
@@ -146,25 +146,25 @@ class _PengaturanState extends State<Pengaturan> {
                   leading: const Icon(Icons.apps),
                   title: const Text("Tentang Kami"),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const TentangKamiPage()),
+                    );
+                },
                 ),
                 ListTile(
-  leading: const Icon(Icons.access_alarm_rounded),
-  title: const Text("History"),
-  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const HistoryPage(),
-      ),
-    );
-  },
-),
+                  leading: const Icon(Icons.access_alarm_rounded),
+                  title: const Text("History"),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const HistoryPage()),
+                    );
+                  },
+                ),
 
-
-
-                
                 ListTile(
                   leading: const Icon(Icons.favorite_border),
                   title: const Text("Favorites"),

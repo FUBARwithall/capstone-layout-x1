@@ -220,7 +220,9 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0066CC).withValues(alpha: 0.1),
+                            color: const Color(
+                              0xFF0066CC,
+                            ).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
@@ -275,7 +277,9 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0066CC).withValues(alpha: 0.1),
+                            color: const Color(
+                              0xFF0066CC,
+                            ).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
@@ -319,7 +323,10 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                   const Expanded(
                     child: Text(
                       'Artikel & Berita Terkini',
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   TextButton(
@@ -426,7 +433,10 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                   const Expanded(
                     child: Text(
                       'Rekomendasi Produk',
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   TextButton(
@@ -516,7 +526,11 @@ class _LandingPageBodyState extends State<LandingPageBody> {
                   top: Radius.circular(12),
                 ),
                 child: Image.network(
-                  '$baseUrl/web/uploads/${image ?? ''}',
+                  (image != null &&
+                          image.isNotEmpty &&
+                          image.startsWith('http'))
+                      ? image
+                      : '$baseUrl/web/uploads/${image ?? ''}',
                   width: 150,
                   height: 120,
                   fit: BoxFit.cover,

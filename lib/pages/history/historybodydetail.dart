@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:layout_x1/services/api_service.dart';
+import 'package:layout_x1/pages/products/productdetailpage.dart';
+import 'package:layout_x1/pages/products/productcategorydetailpage.dart';
 import 'package:layout_x1/services/user_preferences.dart';
+import 'dart:convert';
 
 class HistoryBodyDetailPage extends StatefulWidget {
   final String analysisId;
@@ -12,6 +15,7 @@ class HistoryBodyDetailPage extends StatefulWidget {
 
 class _HistoryBodyDetailPageState extends State<HistoryBodyDetailPage> {
   bool isLoading = true;
+  List<dynamic> recommendedProducts = [];
   Map<String, dynamic>? detectionData;
   int? userId;
 
@@ -50,10 +54,24 @@ class _HistoryBodyDetailPageState extends State<HistoryBodyDetailPage> {
     if (result['success'] == true) {
       final data = result['data'];
 
+      List<dynamic> products = [];
+      final skinProblem = data['disease_analysis']?['disease_info']?['nama'];
+
+      if (skinProblem != null &&
+          skinProblem.toString().isNotEmpty &&
+          skinProblem != '-') {
+        final productResult = await ApiService.getProductsByCategory(
+          skinProblem,
+        );
+        if (productResult['success'] == true) {
+          products = productResult['data'] ?? [];
+        }
+      }
+
       setState(() {
         detectionData = data;
+        recommendedProducts = products;
         isLoading = false;
-        // Load notes from server
         _notesController.text = data?['notes'] ?? '';
       });
     } else {
@@ -171,7 +189,7 @@ class _HistoryBodyDetailPageState extends State<HistoryBodyDetailPage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0066CC),
         foregroundColor: Colors.white,
-        title: const Text('Detail Riwayat Penyakit Tubuh'),
+        title: const Text('Detail Riwayat Deteksi Kulit Tubuh', style: TextStyle(fontSize: 18)),
         centerTitle: true,
       ),
       body: isLoading
@@ -209,6 +227,7 @@ class _HistoryBodyDetailPageState extends State<HistoryBodyDetailPage> {
                               ),
                         const SizedBox(height: 40),
                         _buildDetectionResult(constraints),
+
                         const SizedBox(height: 24),
                         _buildNotesSection(),
                       ],
@@ -346,6 +365,46 @@ class _HistoryBodyDetailPageState extends State<HistoryBodyDetailPage> {
               items: List<String>.from(diseaseInfo['obat']),
               color: Colors.green,
             ),
+          const SizedBox(height: 20),
+
+          // ✅ TAMBAHKAN: Skor Kepercayaan
+          _buildPredictionsSection(
+            diseaseAnalysis != null ? diseaseAnalysis['all_predictions'] : null,
+          ),
+
+          const SizedBox(height: 20),
+          // Product Recommendations Section
+          _buildProductRecommendations(constraints),
+          if (recommendedProducts.isNotEmpty) const SizedBox(height: 20),
+
+           // Warning
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.amber.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.amber.shade200),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.amber.shade700,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Hasil deteksi ini adalah perkiraan berdasarkan AI. Konsultasikan dengan dermatolog untuk diagnosis yang akurat. Konsultasikan dengan dokter untuk diagnosis dan pengobatan yang tepat.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.amber.shade900,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -471,6 +530,371 @@ class _HistoryBodyDetailPageState extends State<HistoryBodyDetailPage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildPredictionsSection(dynamic predictions) {
+    // ✅ VALIDASI LEBIH KETAT
+    if (predictions == null) {
+      return const SizedBox.shrink();
+    }
+
+    // Jika predictions adalah String, coba parse sebagai JSON
+    Map<String, dynamic>? predictionsMap;
+
+    if (predictions is String) {
+      try {
+        // Coba parse jika berupa JSON string
+        final decoded = json.decode(predictions);
+        if (decoded is Map<String, dynamic>) {
+          predictionsMap = decoded;
+        } else {
+          return const SizedBox.shrink();
+        }
+      } catch (e) {
+        print('Error parsing predictions: $e');
+        return const SizedBox.shrink();
+      }
+    } else if (predictions is Map<String, dynamic>) {
+      predictionsMap = predictions;
+    } else {
+      // Tipe data tidak valid
+      return const SizedBox.shrink();
+    }
+
+    // Cek apakah map kosong
+    if (predictionsMap.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Sort predictions by confidence (descending)
+    final sortedPredictions = predictionsMap.entries.toList()
+      ..sort((a, b) {
+        final aValue = (a.value is num) ? (a.value as num) : 0;
+        final bValue = (b.value is num) ? (b.value as num) : 0;
+        return bValue.compareTo(aValue);
+      });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          children: [
+            Icon(Icons.analytics, color: Colors.purple, size: 20),
+            SizedBox(width: 8),
+            Text(
+              'Skor Kepercayaan',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.purple,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.purple.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            children: sortedPredictions.map((entry) {
+              final percentage = (entry.value is num)
+                  ? (entry.value as num).toDouble()
+                  : 0.0;
+              final isTop = entry == sortedPredictions.first;
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 120,
+                      child: Text(
+                        _capitalizeFirst(entry.key),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: isTop
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: isTop
+                              ? Colors.purple
+                              : const Color(0xFF666666),
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: percentage / 100,
+                          backgroundColor: Colors.grey.shade300,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            isTop
+                                ? Colors.purple
+                                : Colors.purple.withOpacity(0.5),
+                          ),
+                          minHeight: 8,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 50,
+                      child: Text(
+                        '${percentage.toStringAsFixed(1)}%',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: isTop
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: isTop
+                              ? Colors.purple
+                              : const Color(0xFF666666),
+                        ),
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _capitalizeFirst(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1).toLowerCase();
+  }
+
+  Widget _buildProductRecommendations(BoxConstraints constraints) {
+    int crossAxisCount = 3;
+    double childAspectRatio = 0.85;
+    double spacing = 16.0;
+
+    if (constraints.maxWidth < 900) {
+      crossAxisCount = 2;
+      childAspectRatio = 0.75;
+      spacing = 12.0;
+    }
+    if (constraints.maxWidth < 600) {
+      crossAxisCount = 1;
+      childAspectRatio = 0.7;
+      spacing = 10.0;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        vertical: 8,
+      ), // samakan spasi vertikal
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.medication, color: Colors.purple, size: 20),
+              SizedBox(width: 8),
+              Text(
+                'Rekomendasi Produk',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.purple,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          recommendedProducts.isNotEmpty
+              ? GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: recommendedProducts.length > 2
+                      ? 2
+                      : recommendedProducts.length,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    childAspectRatio: childAspectRatio,
+                    crossAxisSpacing: spacing,
+                    mainAxisSpacing: spacing,
+                  ),
+                  itemBuilder: (context, index) {
+                    final product = recommendedProducts[index];
+                    return _buildProductCard(product);
+                  },
+                )
+              : Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Text(
+                    'Belum ada rekomendasi produk untuk saat ini.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+          if (recommendedProducts.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {
+                  final jenisObat =
+                      detectionData?['disease_analysis']?['disease_info']?['nama'] ??
+                      '';
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ProductCategoryDetailPage(
+                        userId: userId!,
+                        jenisObat: jenisObat,
+                      ),
+                    ),
+                  );
+                },
+                child: const Text(
+                  'Lihat Produk Lainnya',
+                  style: TextStyle(
+                    color: Color(0xFF0066CC),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductCard(Map<String, dynamic> product) {
+    final productId = product['id'];
+    final nama = product['nama'] ?? 'Produk';
+    final merek = product['merek'] ?? product['brand'] ?? '';
+    final harga = product['harga'];
+    final image = product['image'];
+
+    String formattedHarga = '-';
+    if (harga != null) {
+      final numHarga = harga is num
+          ? harga
+          : double.tryParse(harga.toString()) ?? 0;
+      formattedHarga =
+          'Rp${numHarga.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
+    }
+
+    return GestureDetector(
+      onTap: userId != null
+          ? () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ProductDetailPage(productId: productId, userId: userId!),
+                ),
+              );
+            }
+          : null,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Flexible(
+              flex: 5,
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(12),
+                  ),
+                ),
+                child: Image.network(
+                  (image != null &&
+                          image.isNotEmpty &&
+                          image.startsWith('http'))
+                      ? image
+                      : '$rootUrl/web/uploads/${image ?? ''}',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(
+                      child: Icon(Icons.image, size: 35, color: Colors.grey),
+                    );
+                  },
+                ),
+              ),
+            ),
+            Flexible(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (merek.isNotEmpty)
+                      Text(
+                        merek,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey.shade600,
+                          height: 1.1,
+                        ),
+                      ),
+                    if (merek.isNotEmpty) const SizedBox(height: 1),
+                    Text(
+                      nama,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                        height: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      formattedHarga,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 11,
+                        height: 1.1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

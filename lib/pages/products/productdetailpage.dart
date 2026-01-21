@@ -434,11 +434,14 @@ Widget _buildReplyTree(Map<String, dynamic> comment, int depth) {
         body: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (product!['image'] != null &&
-                  product!['image'].toString().isNotEmpty)
-                Image.network(
-                  '$baseUrl/web/uploads/${product!['image']}',
+         children: [
+  if (product!['image'] != null &&
+      product!['image'].toString().isNotEmpty)
+    Image.network(
+      product!['image'].toString().startsWith('http')
+          ? product!['image'].toString() // URL eksternal
+          : '$baseUrl/web/uploads/${product!['image']}',
+                  
                   height: 350,
                   width: double.infinity,
                   fit: BoxFit.cover,

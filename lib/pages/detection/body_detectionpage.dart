@@ -1,6 +1,9 @@
 ﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:layout_x1/pages/products/productdetailpage.dart';
+import 'package:layout_x1/pages/products/productcategorydetailpage.dart';
+import 'package:layout_x1/services/user_preferences.dart';
 import 'package:layout_x1/services/api_service.dart';
 
 class BodyDetectionpage extends StatefulWidget {
@@ -14,6 +17,8 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
   File? uploadedImage;
   bool showResult = false;
   bool isLoading = false;
+  List<dynamic> recommendedProducts = [];
+  int? userId;
   final ImagePicker _picker = ImagePicker();
 
   // Detection result from API
@@ -25,6 +30,20 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
   bool isEditingNotes = false;
   bool isSavingNotes = false;
 
+  String get rootUrl => ApiService.baseUrl.replaceFirst('/api', '');
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserId();
+  }
+
+  Future<void> _loadUserId() async {
+    final id = await UserPreferences.getUserId();
+    setState(() {
+      userId = id;
+    });
+  }
   // Function to pick image from gallery
   Future<void> _pickImageFromGallery() async {
     try {
@@ -40,6 +59,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
           uploadedImage = File(image.path);
           showResult = false;
           detectionData = null;
+          recommendedProducts = []; 
         });
       }
     } catch (e) {
@@ -66,6 +86,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
           uploadedImage = File(photo.path);
           showResult = false;
           detectionData = null;
+          recommendedProducts = []; 
         });
       }
     } catch (e) {
@@ -76,6 +97,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
       }
     }
   }
+
 
   Future<void> _saveNotes() async {
     if (currentAnalysisId == null) {
@@ -355,33 +377,53 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
     });
 
     try {
-      debugPrint('­ƒöì Starting body detection...');
-      debugPrint('­ƒôü Image path: ${uploadedImage!.path}');
-      debugPrint('­ƒôè File exists: ${uploadedImage!.existsSync()}');
-      debugPrint('­ƒôÅ File size: ${uploadedImage!.lengthSync()} bytes');
+      debugPrint('🚀 Starting body detection...');
+      debugPrint('📂 Image path: ${uploadedImage!.path}');
+      debugPrint('📄 File exists: ${uploadedImage!.existsSync()}');
+      debugPrint('📊 File size: ${uploadedImage!.lengthSync()} bytes');
 
       final result = await ApiService.detectBody(
         imagePath: uploadedImage!.path,
       );
 
-      debugPrint('­ƒôí API Response: $result');
+      debugPrint('📡 API Response: $result');
 
       if (mounted) {
         if (result['success']) {
           final data = result['data'];
-          debugPrint('Ô£à Detection success: $data');
+          debugPrint('✅ Detection success: $data');
+
+          List<dynamic> products = [];
+          final skinProblem = data['disease_analysis']?['disease_info']?['nama'];
+          
+          debugPrint('🔍 Detected skin problem: $skinProblem');
+          
+          if (skinProblem != null && 
+              skinProblem.toString().isNotEmpty && 
+              skinProblem != '-') {
+            debugPrint('🛒 Fetching products for category: $skinProblem');
+            final productResult = await ApiService.getProductsByCategory(skinProblem);
+            
+            if (productResult['success'] == true) {
+              products = productResult['data'] ?? [];
+              debugPrint('✅ Found ${products.length} products');
+            } else {
+              debugPrint('⚠️ Failed to fetch products: ${productResult['message']}');
+            }
+          } else {
+            debugPrint('⚠️ No valid skin problem detected, skipping product fetch');
+          }
 
           setState(() {
             detectionData = data;
-            currentAnalysisId = data['analysis_id']
-                ?.toString(); // Store analysis ID
+            currentAnalysisId = data['analysis_id']?.toString();
             showResult = true;
             isLoading = false;
-            // Load notes if available (usually empty for new detection)
             _notesController.text = data['notes'] ?? '';
+            recommendedProducts = products; // TAMBAHAN: Set recommended products
           });
         } else {
-          debugPrint('ÔØî Detection failed: ${result['message']}');
+          debugPrint('❌ Detection failed: ${result['message']}');
           setState(() {
             isLoading = false;
           });
@@ -394,8 +436,8 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
         }
       }
     } catch (e, stackTrace) {
-      debugPrint('­ƒÆÑ Exception in _detectBody: $e');
-      debugPrint('­ƒôÜ Stack trace: $stackTrace');
+      debugPrint('💥 Exception in _detectBody: $e');
+      debugPrint('📜 Stack trace: $stackTrace');
       if (mounted) {
         setState(() {
           isLoading = false;
@@ -414,8 +456,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0066CC),
         foregroundColor: Colors.white,
-        title: const Text('Deteksi Tubuh'),
-        centerTitle: true,
+        title: const Text('Deteksi Kulit Tubuh', style: TextStyle(fontSize: 18)),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -657,6 +698,10 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
           _buildPredictionsSection(diseaseAnalysis['all_predictions']),
           const SizedBox(height: 20),
 
+          // Product Recommendations Section
+          _buildProductRecommendations(constraints),
+          const SizedBox(height: 20),
+
           // Warning
           Container(
             padding: const EdgeInsets.all(12),
@@ -675,7 +720,7 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Konsultasikan dengan dokter untuk diagnosis dan pengobatan yang tepat.',
+                    'Hasil deteksi ini adalah perkiraan berdasarkan AI. Konsultasikan dengan dermatolog untuk diagnosis yang akurat. Konsultasikan dengan dokter untuk diagnosis dan pengobatan yang tepat.',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.amber.shade900,
@@ -944,6 +989,232 @@ class _BodyDetectionpageState extends State<BodyDetectionpage> {
       return timestamp;
     }
   }
+
+   
+
+  Widget _buildProductRecommendations(BoxConstraints constraints) {
+  int crossAxisCount = 3;
+  double childAspectRatio = 0.85;
+  double spacing = 16.0;
+
+  if (constraints.maxWidth < 900) {
+    crossAxisCount = 2;
+    childAspectRatio = 0.75;
+    spacing = 12.0;
+  }
+  if (constraints.maxWidth < 600) {
+    crossAxisCount = 1;
+    childAspectRatio = 0.7;
+    spacing = 10.0;
+  }
+
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8), // samakan spasi vertikal
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          children: [
+            Icon(Icons.medication, color: Colors.purple, size: 20),
+            SizedBox(width: 8),
+            Text(
+              'Rekomendasi Produk',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.purple,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        recommendedProducts.isNotEmpty
+            ? GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: recommendedProducts.length > 2
+                      ? 2
+                      : recommendedProducts.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  childAspectRatio: childAspectRatio,
+                  crossAxisSpacing: spacing,
+                  mainAxisSpacing: spacing,
+                ),
+                itemBuilder: (context, index) {
+                  final product = recommendedProducts[index];
+                  return _buildProductCard(product);
+                },
+              )
+            : Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text(
+                  'Belum ada rekomendasi produk untuk saat ini.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                    fontStyle: FontStyle.italic,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              if (recommendedProducts.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {
+                  final jenisObat =
+                      detectionData?['disease_analysis']?['disease_info']?['nama'] ??
+                      '';
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ProductCategoryDetailPage(
+                        userId: userId!,
+                        jenisObat: jenisObat,
+                      ),
+                    ),
+                  );
+                },
+                child: const Text(
+                  'Lihat Produk Lainnya',
+                  style: TextStyle(
+                    color: Color(0xFF0066CC),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+      ],
+    ),
+  );
+}
+
+
+  Widget _buildProductCard(Map<String, dynamic> product) {
+    final productId = product['id'];
+    final nama = product['nama'] ?? 'Produk';
+    final merek = product['merek'] ?? product['brand'] ?? '';
+    final harga = product['harga'];
+    final image = product['image'];
+
+    String formattedHarga = '-';
+    if (harga != null) {
+      final numHarga = harga is num
+          ? harga
+          : double.tryParse(harga.toString()) ?? 0;
+      formattedHarga =
+          'Rp${numHarga.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
+    }
+
+    return GestureDetector(
+      onTap: userId != null
+          ? () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ProductDetailPage(productId: productId, userId: userId!),
+                ),
+              );
+            }
+          : null,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Flexible(
+              flex: 5,
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(12),
+                  ),
+                ),
+                child: Image.network(
+                  (image != null &&
+                          image.isNotEmpty &&
+                          image.startsWith('http'))
+                      ? image
+                      : '$rootUrl/web/uploads/${image ?? ''}',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(
+                      child: Icon(Icons.image, size: 35, color: Colors.grey),
+                    );
+                  },
+                ),
+              ),
+            ),
+            Flexible(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (merek.isNotEmpty)
+                      Text(
+                        merek,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey.shade600,
+                          height: 1.1,
+                        ),
+                      ),
+                    if (merek.isNotEmpty) const SizedBox(height: 1),
+                    Text(
+                      nama,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                        height: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      formattedHarga,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 11,
+                        height: 1.1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   Widget _buildRightImage(BoxConstraints constraints) {
     final isWide = constraints.maxWidth > 800;

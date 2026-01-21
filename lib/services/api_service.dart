@@ -5,8 +5,9 @@ import 'secure_storage.dart';
 
 class ApiService {
   //  static const String baseUrl = 'http://10.235.110.225:5000/api';
-   //static const String baseUrl = 'https://pedulikulit.my.id/api';
-  static const String baseUrl = 'https://nonrelativistic-amalia-unconflictingly.ngrok-free.dev/api';
+  //static const String baseUrl = 'https://pedulikulit.my.id/api';
+  static const String baseUrl =
+      'https://nonrelativistic-amalia-unconflictingly.ngrok-free.dev/api';
 
   static const String googleClientId =
       '139914337046-333vbk7mq3q47ue93tdahl74n0jvmbk7.apps.googleusercontent.com';
@@ -177,7 +178,6 @@ class ApiService {
     throw Exception('Gagal load messages');
   }
 
-
   static Future<List<dynamic>> getConversations() async {
     final headers = await _getAuthHeaders();
 
@@ -193,7 +193,6 @@ class ApiService {
     return [];
   }
 
-
   static Future<Map<String, dynamic>> createConversation() async {
     final headers = await _getAuthHeaders();
 
@@ -205,7 +204,7 @@ class ApiService {
 
     if (response.statusCode == 201) {
       final data = jsonDecode(response.body);
-      
+
       return {
         'success': true,
         'conversation_id': data['conversation_id'],
@@ -225,10 +224,7 @@ class ApiService {
     final response = await http.post(
       Uri.parse('$baseUrl/chatbot/chat'),
       headers: headers,
-      body: jsonEncode({
-        'conversation_id': conversationId,
-        'message': message,
-      }),
+      body: jsonEncode({'conversation_id': conversationId, 'message': message}),
     );
 
     final data = jsonDecode(response.body);
@@ -328,6 +324,29 @@ class ApiService {
         Uri.parse(
           '$baseUrl/products/by-category?category=${Uri.encodeComponent(category)}',
         ),
+        headers: headers,
+      );
+      final data = jsonDecode(response.body);
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'] ?? 'Success',
+        'data': data['data'] ?? [],
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Gagal terhubung ke server: $e',
+        'data': [],
+      };
+    }
+  }
+
+  /// Get all unique categories from products
+  static Future<Map<String, dynamic>> getCategories() async {
+    try {
+      final headers = await _getAuthHeaders();
+      final response = await (_client ?? http.Client()).get(
+        Uri.parse('$baseUrl/products/categories'),
         headers: headers,
       );
       final data = jsonDecode(response.body);

@@ -351,13 +351,17 @@ class _HistoryPageState extends State<HistoryPage>
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: () {
-              Navigator.push(
+             Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) =>
-                      HistoryDetailPage(analysisId: item['id'].toString()),
+                  builder: (_) => HistoryDetailPage(
+                    analysisId: item['id'].toString(),
+                    categoryId: item['category_id'] ?? 0, // id kategori
+                    categoryName: item['category_name'] ?? '', // nama kategori
+                  ),
                 ),
               );
+
             },
             child: Container(
               margin: const EdgeInsets.only(bottom: 12),

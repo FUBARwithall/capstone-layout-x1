@@ -49,7 +49,9 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
       final response = await http.get(url, headers: headers);
       final data = jsonDecode(response.body);
 
-      debugPrint('Favorite status response: ${response.statusCode} - ${response.body}');
+      debugPrint(
+        'Favorite status response: ${response.statusCode} - ${response.body}',
+      );
 
       if (response.statusCode == 200) {
         setState(() {
@@ -79,7 +81,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
           headers: headers,
           body: jsonEncode({'user_id': userId}),
         );
-        
+
         debugPrint('Delete favorite response: ${response.statusCode}');
 
         if (response.statusCode == 200 || response.statusCode == 204) {
@@ -95,7 +97,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
           headers: headers,
           body: jsonEncode({'user_id': userId}),
         );
-        
+
         debugPrint('Add favorite response: ${response.statusCode}');
 
         if (response.statusCode == 200 || response.statusCode == 201) {
@@ -132,7 +134,11 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
           title: Text(
             widget.article['title'] ?? 'Judul Artikel',
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            softWrap: true,
           ),
+
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 20),
@@ -258,9 +264,10 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
               Container(
                 padding: const EdgeInsets.all(20),
                 child: Html(
-                  data:
-                      widget.article['description'] ??
-                      '<p>Deskripsi tidak tersedia</p>',
+                  data: (widget.article['description'] ?? '').replaceAll(
+                    r'\n',
+                    '<br>',
+                  ),
                   style: {
                     "body": Style(
                       fontSize: FontSize(16),

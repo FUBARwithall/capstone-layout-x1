@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:layout_x1/pages/pantaupage.dart';
 import 'package:layout_x1/pages/products/productdetailpage.dart';
+import 'package:layout_x1/pages/products/productcategorydetailpage.dart';
 import 'package:layout_x1/services/api_service.dart';
 import 'package:layout_x1/services/user_preferences.dart';
 
@@ -228,8 +229,7 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0066CC),
         foregroundColor: Colors.white,
-        title: const Text('Deteksi Wajah'),
-        centerTitle: true,
+        title: const Text('Deteksi Kulit Wajah', style: TextStyle(fontSize: 18)),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -378,67 +378,63 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.medical_information,
-                      color: Color(0xFF0066CC),
-                      size: 28,
-                    ),
-                    const SizedBox(width: 10),
-                    const Flexible(
-                      child: Text(
-                        'Hasil Deteksi Wajah',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2C2C2C),
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
+              const Icon(
+                Icons.medical_information,
+                color: Color(0xFF0066CC),
+                size: 28,
               ),
-              const SizedBox(width: 12),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const PantauKulitPage(),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                ),
-                icon: const Icon(
-                  Icons.monitor_heart,
-                  size: 20,
-                  color: Colors.white,
-                ),
-                label: const Text(
-                  'Pantau Kulit',
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Hasil Deteksi Wajah',
                   style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2C2C2C),
                   ),
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          // Tombol Pantau Kulit
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PantauKulitPage(fromHistory: true),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
+              icon: const Icon(
+                Icons.monitor_heart,
+                size: 20,
+                color: Colors.white,
+              ),
+              label: const Text(
+                'Pantau Kulit',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
+            ),
           ),
 
         if (timestamp.isNotEmpty)
@@ -512,7 +508,7 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Hasil deteksi ini adalah perkiraan berdasarkan AI. Konsultasikan dengan dermatolog untuk diagnosis yang akurat.',
+                  'Hasil deteksi ini adalah perkiraan berdasarkan AI. Konsultasikan dengan dermatolog untuk diagnosis yang akurat. Konsultasikan dengan dokter untuk diagnosis dan pengobatan yang tepat.',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.amber.shade900,
@@ -713,7 +709,9 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: recommendedProducts.length,
+          itemCount: recommendedProducts.length > 2
+                      ? 2
+                      : recommendedProducts.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
             childAspectRatio: childAspectRatio,
@@ -725,6 +723,43 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
             return _buildProductCard(product);
           },
         ),
+
+        if (recommendedProducts.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () {
+                // Ambil category dari hasil deteksi
+                final skinProblemCategoryId =
+                    detectionData?['skin_problem_analysis']?['category_id'];
+                final skinProblemCategoryName =
+                    detectionData?['skin_problem_analysis']?['result'] ?? '';
+
+                // Navigasi ke ProductCategoryDetailPage
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProductCategoryDetailPage(
+                      userId: userId!,
+                      jenisObat:
+                          skinProblemCategoryName, // nama kategori/masalah kulit
+                      categoryId:
+                          skinProblemCategoryId, // id kategori dari hasil deteksi
+                    ),
+                  ),
+                );
+              },
+              child: const Text(
+                'Lihat Produk Lainnya',
+                style: TextStyle(
+                  color: Color(0xFF0066CC),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

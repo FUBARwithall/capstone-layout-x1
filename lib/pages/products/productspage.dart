@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:layout_x1/services/api_service.dart';
 import 'package:layout_x1/pages/products/productdetailpage.dart';
+import 'package:layout_x1/pages/products/productcategorypage.dart';
 
 class ProductsPage extends StatefulWidget {
   final int userId;
@@ -70,56 +71,77 @@ class _ProductsPageState extends State<ProductsPage> {
         backgroundColor: const Color(0xFF0066CC),
         foregroundColor: Colors.white,
       ),
-      body: _products.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : LayoutBuilder(
-              builder: (context, constraints) {
-                return GridView.builder(
-                  padding: const EdgeInsets.all(16),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 0.7,
+      body: Column(
+        children: [
+          // Tombol kategori
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ProductCategoryPage(userId: widget.userId),
                   ),
-                  itemCount: _products.length,
-                  itemBuilder: (context, index) {
-                    final p = _products[index];
-                    return GestureDetector(
-                      onTap: () {
-                        final productId = int.tryParse(p['id'].toString());
-
-                        if (productId == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('ID produk tidak valid'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                          return;
-                        }
-
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ProductDetailPage(
-                              productId: productId,
-                              userId: widget.userId,
-                            ),
-                          ),
-                        );
-                      },
-                      child: _buildProductCard(
-                        p['image'],
-                        p['merek'],
-                        p['nama'],
-                        "Rp ${p['harga']}",
-                      ),
-                    );
-                  },
                 );
               },
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(50), // tombol lebar penuh
+                backgroundColor: const Color(0xFF0066CC),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Lihat Berdasarkan Kategori Produk'),
             ),
+          ),
+
+          // Grid produk
+          Expanded(
+            child: _products.isEmpty
+                ? const Center(child: CircularProgressIndicator())
+                : LayoutBuilder(
+                    builder: (context, constraints) {
+                      return GridView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: 0.7,
+                        ),
+                        itemCount: _products.length,
+                        itemBuilder: (context, index) {
+                          final p = _products[index];
+                          return GestureDetector(
+                            onTap: () {
+                              final productId = int.tryParse(
+                                p['id'].toString(),
+                              );
+                              if (productId == null) return;
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ProductDetailPage(
+                                    productId: productId,
+                                    userId: widget.userId,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: _buildProductCard(
+                              p['image'],
+                              p['merek'],
+                              p['nama'],
+                              "Rp ${p['harga']}",
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -161,7 +183,9 @@ class _ProductsPageState extends State<ProductsPage> {
                         top: Radius.circular(12),
                       ),
                       child: Image.network(
-                        '$baseUrl/web/uploads/$image',
+                        image.startsWith('http')
+                            ? image
+                            : '$baseUrl/web/uploads/$image',
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Center(
@@ -205,10 +229,7 @@ class _ProductsPageState extends State<ProductsPage> {
                   name,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.black54,
-                  ),
+                  style: const TextStyle(fontSize: 12, color: Colors.black54),
                 ),
                 const SizedBox(height: 8),
                 Text(
