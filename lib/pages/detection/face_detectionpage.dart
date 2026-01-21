@@ -34,6 +34,7 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
   bool isSavingNotes = false;
 
   String get imageBaseUrl => ApiService.baseUrl.replaceFirst('/api', '');
+  String get rootUrl => ApiService.baseUrl.replaceFirst('/api', '');
 
   @override
   void initState() {
@@ -229,7 +230,10 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0066CC),
         foregroundColor: Colors.white,
-        title: const Text('Deteksi Kulit Wajah', style: TextStyle(fontSize: 18)),
+        title: const Text(
+          'Deteksi Kulit Wajah',
+          style: TextStyle(fontSize: 18),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -263,9 +267,7 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
                       padding: EdgeInsets.only(top: 40),
                       child: Column(
                         children: [
-                          CircularProgressIndicator(
-                            color: Color(0xFF0066CC),
-                          ),
+                          CircularProgressIndicator(color: Color(0xFF0066CC)),
                           SizedBox(height: 16),
                           Text(
                             'Menganalisis wajah...',
@@ -357,9 +359,9 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
   }
 
   Widget _buildDetectionResult(BoxConstraints constraints) {
-  final skinType = detectionData!['skin_type_analysis'];
-  final skinProblem = detectionData!['skin_problem_analysis'];
-  final timestamp = detectionData!['timestamp'] ?? '';
+    final skinType = detectionData!['skin_type_analysis'];
+    final skinProblem = detectionData!['skin_problem_analysis'];
+    final timestamp = detectionData!['timestamp'] ?? '';
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -407,7 +409,8 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const PantauKulitPage(fromHistory: true),
+                    builder: (context) =>
+                        const PantauKulitPage(fromHistory: true),
                   ),
                 );
               },
@@ -437,96 +440,97 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
             ),
           ),
 
-        if (timestamp.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Text(
-              'Dianalisis pada: ${_formatTimestamp(timestamp)}',
-              style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
+          if (timestamp.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                'Dianalisis pada: ${_formatTimestamp(timestamp)}',
+                style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
+              ),
+            ),
+
+          const Divider(height: 24, thickness: 1),
+
+          // Skin Type Section
+          _buildResultSection(
+            icon: Icons.face,
+            title: 'Jenis Kulit',
+            result: skinType?['result']?.toString() ?? '-',
+            confidence: skinType?['confidence'] is num
+                ? '${(skinType!['confidence'] as num).toStringAsFixed(1)}%'
+                : skinType?['confidence']?.toString() ?? '-',
+            predictions: skinType?['all_predictions'] ?? {},
+            color: Colors.blue,
+          ),
+
+          const SizedBox(height: 20),
+
+          // Skin Problem Section
+          _buildResultSection(
+            icon: Icons.healing,
+            title: 'Masalah Kulit',
+            result: skinProblem?['result']?.toString() ?? '-',
+            confidence: skinProblem?['confidence'] is num
+                ? '${(skinProblem!['confidence'] as num).toStringAsFixed(1)}%'
+                : skinProblem?['confidence']?.toString() ?? '-',
+            predictions: skinProblem?['all_predictions'] ?? {},
+            color: Colors.orange,
+          ),
+
+          const SizedBox(height: 20),
+
+          // Tips Section
+          _buildTipsSection(
+            skinType?['result']?.toString(),
+            skinProblem?['result']?.toString(),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Product Recommendations Section
+          if (recommendedProducts.isNotEmpty)
+            _buildProductRecommendations(constraints),
+
+          if (recommendedProducts.isNotEmpty) const SizedBox(height: 20),
+
+          // Warning
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.amber.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.amber.shade200),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.amber.shade700,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Hasil deteksi ini adalah perkiraan berdasarkan AI. Konsultasikan dengan dermatolog untuk diagnosis yang akurat. Konsultasikan dengan dokter untuk diagnosis dan pengobatan yang tepat.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.amber.shade900,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
 
-        const Divider(height: 24, thickness: 1),
+          const SizedBox(height: 20),
 
-        // Skin Type Section
-        _buildResultSection(
-          icon: Icons.face,
-          title: 'Jenis Kulit',
-          result: skinType?['result']?.toString() ?? '-',
-          confidence: skinType?['confidence'] is num
-              ? '${(skinType!['confidence'] as num).toStringAsFixed(1)}%'
-              : skinType?['confidence']?.toString() ?? '-',
-          predictions: skinType?['all_predictions'] ?? {},
-          color: Colors.blue,
-        ),
+          // Notes Section
+          _buildNotesSection(),
+        ],
+      ),
+    );
+  }
 
-        const SizedBox(height: 20),
-
-        // Skin Problem Section
-        _buildResultSection(
-          icon: Icons.healing,
-          title: 'Masalah Kulit',
-          result: skinProblem?['result']?.toString() ?? '-',
-          confidence: skinProblem?['confidence'] is num
-              ? '${(skinProblem!['confidence'] as num).toStringAsFixed(1)}%'
-              : skinProblem?['confidence']?.toString() ?? '-',
-          predictions: skinProblem?['all_predictions'] ?? {},
-          color: Colors.orange,
-        ),
-
-        const SizedBox(height: 20),
-
-        // Tips Section
-        _buildTipsSection(
-          skinType?['result']?.toString(),
-          skinProblem?['result']?.toString(),
-        ),
-
-        const SizedBox(height: 20),
-
-        // Product Recommendations Section
-        if (recommendedProducts.isNotEmpty)
-          _buildProductRecommendations(constraints),
-
-        if (recommendedProducts.isNotEmpty) const SizedBox(height: 20),
-
-        // Warning
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.amber.shade50,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.amber.shade200),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.warning_amber_rounded,
-                color: Colors.amber.shade700,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Hasil deteksi ini adalah perkiraan berdasarkan AI. Konsultasikan dengan dermatolog untuk diagnosis yang akurat. Konsultasikan dengan dokter untuk diagnosis dan pengobatan yang tepat.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.amber.shade900,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 20),
-
-        // Notes Section
-        _buildNotesSection(),
-      ],
-    ),
-  );
-}
   Widget _buildResultSection({
     required IconData icon,
     required String title,
@@ -710,8 +714,8 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: recommendedProducts.length > 2
-                      ? 2
-                      : recommendedProducts.length,
+              ? 2
+              : recommendedProducts.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
             childAspectRatio: childAspectRatio,
@@ -786,11 +790,8 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ProductDetailPage(
-                    productId: productId,
-                    userId: userId!,
-                    // returnTo: 'faceDetection',
-                  ),
+                  builder: (context) =>
+                      ProductDetailPage(productId: productId, userId: userId!),
                 ),
               );
             }
@@ -811,73 +812,79 @@ class _FaceDetectionpageState extends State<FaceDetectionpage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Product Image
-            Flexible(
-              flex: 5,
+            Expanded(
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.grey[200],
+                  color: Colors.white,
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(12),
                   ),
                 ),
-                child: Image.network(
-                  '$imageBaseUrl/web/uploads/$image',
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Center(
-                      child: Icon(Icons.image, size: 35, color: Colors.grey),
-                    );
-                  },
-                ),
-              ),
-            ),
-            // Product Info
-            Flexible(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (merek.isNotEmpty)
-                      Text(
-                        merek,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey.shade600,
-                          height: 1.1,
+                child: image != null && image.toString().isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(12),
+                        ),
+                        child: Image.network(
+                          image.toString().startsWith('http')
+                              ? image.toString()
+                              : '$rootUrl/web/uploads/$image',
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Center(
+                              child: Icon(
+                                Icons.medical_services,
+                                size: 40,
+                                color: Colors.grey[400],
+                              ),
+                            );
+                          },
+                        ),
+                      )
+                    : Center(
+                        child: Icon(
+                          Icons.medical_services,
+                          size: 40,
+                          color: Colors.grey[400],
                         ),
                       ),
-                    if (merek.isNotEmpty) const SizedBox(height: 1),
-                    Text(
-                      nama,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 11,
-                        height: 1.1,
-                      ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    merek.isNotEmpty ? merek : '-',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      formattedHarga,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.red,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 11,
-                        height: 1.1,
-                      ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    nama,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    formattedHarga,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ],

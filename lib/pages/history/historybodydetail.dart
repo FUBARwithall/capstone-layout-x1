@@ -189,7 +189,10 @@ class _HistoryBodyDetailPageState extends State<HistoryBodyDetailPage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0066CC),
         foregroundColor: Colors.white,
-        title: const Text('Detail Riwayat Deteksi Kulit Tubuh', style: TextStyle(fontSize: 18)),
+        title: const Text(
+          'Detail Riwayat Deteksi Kulit Tubuh',
+          style: TextStyle(fontSize: 18),
+        ),
         centerTitle: true,
       ),
       body: isLoading
@@ -377,7 +380,7 @@ class _HistoryBodyDetailPageState extends State<HistoryBodyDetailPage> {
           _buildProductRecommendations(constraints),
           if (recommendedProducts.isNotEmpty) const SizedBox(height: 20),
 
-           // Warning
+          // Warning
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -821,75 +824,79 @@ class _HistoryBodyDetailPageState extends State<HistoryBodyDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Flexible(
-              flex: 5,
+            Expanded(
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.grey[200],
+                  color: Colors.white,
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(12),
                   ),
                 ),
-                child: Image.network(
-                  (image != null &&
-                          image.isNotEmpty &&
-                          image.startsWith('http'))
-                      ? image
-                      : '$rootUrl/web/uploads/${image ?? ''}',
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Center(
-                      child: Icon(Icons.image, size: 35, color: Colors.grey),
-                    );
-                  },
-                ),
-              ),
-            ),
-            Flexible(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (merek.isNotEmpty)
-                      Text(
-                        merek,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey.shade600,
-                          height: 1.1,
+                child: image != null && image.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(12),
+                        ),
+                        child: Image.network(
+                          image.startsWith('http')
+                              ? image
+                              : '$rootUrl/web/uploads/$image',
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Center(
+                              child: Icon(
+                                Icons.medical_services,
+                                size: 40,
+                                color: Colors.grey[400],
+                              ),
+                            );
+                          },
+                        ),
+                      )
+                    : Center(
+                        child: Icon(
+                          Icons.medical_services,
+                          size: 40,
+                          color: Colors.grey[400],
                         ),
                       ),
-                    if (merek.isNotEmpty) const SizedBox(height: 1),
-                    Text(
-                      nama,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 11,
-                        height: 1.1,
-                      ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    merek.isNotEmpty ? merek : '-',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      formattedHarga,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.red,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 11,
-                        height: 1.1,
-                      ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    nama,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    formattedHarga,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ],

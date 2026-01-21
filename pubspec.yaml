@@ -43,9 +43,10 @@ dependencies:
   flutter_local_notifications: ^17.2.1
   timezone: ^0.9.4
   permission_handler: ^11.3.1 
+  url_launcher: ^6.2.5
+
 
 dev_dependencies:
-  flutter_launcher_icons: "^0.14.4"
   flutter_lints: ^5.0.0
   flutter_test:
     sdk: flutter
@@ -56,7 +57,7 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/data/images/PeduliKulit.png"
+  image_path: "assets/data/images/LogoPeduliKulit.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -73,6 +74,7 @@ flutter:
     - assets/data/images/berminyak.jpeg
     - assets/data/images/google.webp
     - assets/data/images/PeduliKulit.png
+    - assets/data/images/LogoPeduliKulit.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

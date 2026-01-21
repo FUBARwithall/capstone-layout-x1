@@ -13,7 +13,6 @@ class ProductsPage extends StatefulWidget {
 class _ProductsPageState extends State<ProductsPage> {
   List<dynamic> _products = [];
 
-  // Get base URL for uploads (without /api suffix)
   String get baseUrl => ApiService.baseUrl.replaceAll('/api', '');
 
   @override
@@ -149,8 +148,23 @@ class _ProductsPageState extends State<ProductsPage> {
     String? image,
     String brand,
     String name,
-    String price,
+    dynamic price,
   ) {
+    String formattedPrice = '-';
+    if (price != null) {
+      final numPrice = price is num
+          ? price
+          : double.tryParse(
+                  price.toString().replaceAll(RegExp(r'[^0-9.]'), ''),
+                ) ??
+                0;
+
+      if (numPrice > 0) {
+        formattedPrice =
+            'Rp${numPrice.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
+      }
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -167,12 +181,11 @@ class _ProductsPageState extends State<ProductsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image Section
           Expanded(
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                color: Colors.grey[200],
+                color: Colors.white,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(12),
                 ),
@@ -186,7 +199,7 @@ class _ProductsPageState extends State<ProductsPage> {
                         image.startsWith('http')
                             ? image
                             : '$baseUrl/web/uploads/$image',
-                        fit: BoxFit.cover,
+                        fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) {
                           return Center(
                             child: Icon(
@@ -208,7 +221,6 @@ class _ProductsPageState extends State<ProductsPage> {
             ),
           ),
 
-          // Info Section - Fixed Height
           Container(
             padding: const EdgeInsets.all(10),
             child: Column(
@@ -217,7 +229,7 @@ class _ProductsPageState extends State<ProductsPage> {
               children: [
                 Text(
                   brand,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
@@ -227,13 +239,13 @@ class _ProductsPageState extends State<ProductsPage> {
                 const SizedBox(height: 4),
                 Text(
                   name,
-                  maxLines: 2,
+                  maxLines: 5,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 12, color: Colors.black54),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  price,
+                 Text(
+                  formattedPrice,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
